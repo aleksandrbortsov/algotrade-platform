@@ -1,0 +1,61 @@
+server:
+  port: 0
+
+logging:
+  file:
+    name: logs/user-service.log
+    max-size: 10Mb
+    max-history: 7
+
+  level:
+    org:
+      hibernate:
+        SQL: debug
+        type.descriptor.sql: trace
+
+management:
+  endpoints:
+    web.exposure.include: "*"
+    health.show-details: always
+
+spring:
+  boot:
+    admin:
+      client:
+        url: ${ADMIN_SERVER:http://localhost:5555/}
+#        username: adminService
+#        password: admin!
+#        instance:
+#          metadata:
+#            user:
+#              name: adminService
+#              password: admin!
+
+  jackson:
+    default-property-inclusion: NON_NULL
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+
+  cloud:
+    consul:
+      host: localhost
+      port: 8500
+      discovery:
+        register-health-check: false
+        instance-id: "${spring.cloud.client.hostname}_${spring.application.name}:${random.value}"
+
+  #DB connection
+  datasource:
+    url: jdbc:mysql://localhost:3307/users_schema
+    username: springuser
+    password: The_Password
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+#secret key - should be encrypted
+jwt:
+  secret: ${APP_JWT_SECRET:dZhxh0--Kq3XZD3UmV5LbXuZP3sUoJQMX03tFYJ1mws}
+  #3 minutes validity
+  token.validity: 180000

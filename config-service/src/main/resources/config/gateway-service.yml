@@ -1,0 +1,55 @@
+server:
+  port: 3535
+
+logging:
+  file:
+    name: logs/gateway-service.log
+    max-size: 10Mb
+    max-history: 7
+  level.org.hibernate:
+    SQL: debug
+    type.descriptor.sql: trace
+
+management:
+  endpoints:
+    web.exposure.include: "*"
+    health.show-details: always
+
+spring:
+  boot:
+    admin:
+      client:
+        url: ${ADMIN_SERVER:http://localhost:5555/}
+
+  jackson:
+    default-property-inclusion: NON_NULL
+
+  cloud:
+    consul:
+      host: localhost
+      port: 8500
+      config:
+        enabled: true
+      discovery:
+        register-health-check: false
+
+    gateway:
+      discovery.locator.enabled: true
+      routes:
+        - id: auth-service-id
+          uri: lb://auth-service
+          predicates:
+            Path=/auth/**
+
+        - id: user-service-id
+          uri: lb://user-service
+          predicates:
+            Path=/users/**
+          filters:
+            - AuthFilter
+        - id: person-service-in
+          uri: lb://person-service
+          predicates:
+            - Path=/persons/**
+          filters:
+            - AuthFilter

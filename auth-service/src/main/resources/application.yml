@@ -1,0 +1,23 @@
+server:
+  port: 9000
+
+spring:
+  application:
+    name: auth-service
+
+  #ignore null fields in json
+  jackson:
+    default-property-inclusion: NON_NULL
+
+  cloud:
+    consul:
+      host: localhost
+      port: 8500
+      discovery:
+        register-health-check: false
+
+#secret key - should be encrypted
+jwt:
+  secret: ${APP_JWT_SECRET:dZhxh0--Kq3XZD3UmV5LbXuZP3sUoJQMX03tFYJ1mws}
+  #3 minutes validity
+  token.validity: 180000

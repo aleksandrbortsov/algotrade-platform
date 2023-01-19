@@ -1,0 +1,48 @@
+server:
+  port: 5555
+
+#management.endpoints:
+#  web:
+#    exposure.include: "*"
+
+spring:
+  application.name: admin-service
+
+  cloud:
+    consul:
+      host: localhost
+      port: 8500
+      discovery:
+        register-health-check: false
+
+  security:
+    user:
+      name: adminService
+      password: admin!
+  
+  #configs to connect to self register the admin server as a client
+#  boot:
+#    admin:
+#      client:
+#        url: http://localhost:5555
+#        username: ${spring.security.user.name}
+#        password: ${spring.security.user.password}
+        #configs to give secured server info
+#        instance:
+#          metadata:
+#            user:
+#              name: ${spring.security.user.name}
+#              password: ${spring.security.user.password}
+
+
+logging:
+  file:
+    name: logs/admin-service.log
+  level.org.hibernate:
+    SQL: debug
+    type.descriptor.sql: trace
+  logback:
+    rollingpolicy:
+      max-file-size: 10Mb
+      max-history: 7
+

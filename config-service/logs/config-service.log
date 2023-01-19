@@ -1,0 +1,8 @@
+2022-12-05 13:03:15.838  INFO 13588 --- [main] p.a.c.ConfigServiceApplicationTests      : Starting ConfigServiceApplicationTests using Java 17.0.5 on WS-9724 with PID 13588 (started by albo0215 in C:\Projects\Trainings\AlgoTradePlatform\config-service)
+2022-12-05 13:03:15.842  INFO 13588 --- [main] p.a.c.ConfigServiceApplicationTests      : The following 1 profile is active: "native"
+2022-12-05 13:03:18.834  INFO 13588 --- [main] o.s.cloud.context.scope.GenericScope     : BeanFactory id=5691b4c9-dcbf-3c35-ad23-13e74b737266
+2022-12-05 13:03:25.656  INFO 13588 --- [main] o.s.cloud.commons.util.InetUtils         : Cannot determine local hostname
+2022-12-05 13:03:28.653  INFO 13588 --- [main] o.s.cloud.commons.util.InetUtils         : Cannot determine local hostname
+2022-12-05 13:03:29.379  WARN 13588 --- [main] iguration$LoadBalancerCaffeineWarnLogger : Spring Cloud LoadBalancer is currently working with the default cache. While this cache implementation is useful for development and tests, it's recommended to use Caffeine cache in production.You can switch to using Caffeine cache, by adding it and org.springframework.cache.caffeine.CaffeineCacheManager to the classpath.
+2022-12-05 13:03:29.402  INFO 13588 --- [main] o.s.b.a.e.web.EndpointLinksResolver      : Exposing 18 endpoint(s) beneath base path '/actuator'
+2022-12-05 13:03:29.708  INFO 13588 --- [main] p.a.c.ConfigServiceApplicationTests      : Started ConfigServiceApplicationTests in 16.551 seconds (JVM running for 18.395)
