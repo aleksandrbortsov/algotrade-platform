@@ -1,0 +1,12 @@
+
+V	java:S1254"<This block of commented-out lines of code should be removed.(“œ¥âúÿÿÿÿ
+M
+java:S11352"2Complete the task associated to this TODO comment.(Á—Ğˆıÿÿÿÿ
+T
+java:S1854x"9Remove this useless assignment to local variable "bytes".(îé„ñøÿÿÿÿ
+T
+java:S1854w"9Remove this useless assignment to local variable "login".(°¸ˆ¶ıÿÿÿÿ
+E
+java:S1481w"*Remove this unused "login" local variable.(°¸ˆ¶ıÿÿÿÿ
+E
+java:S1481x"*Remove this unused "bytes" local variable.(îé„ñøÿÿÿÿ

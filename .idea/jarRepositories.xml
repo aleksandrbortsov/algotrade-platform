@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="RemoteRepositoriesConfiguration">
+    <remote-repository>
+      <option name="id" value="nc.tools.snapshots" />
+      <option name="name" value="nc.tools.snapshots" />
+      <option name="url" value="https://nexussrv.netcracker.com/content/repositories/nc.tools.snapshots" />
+    </remote-repository>
+    <remote-repository>
+      <option name="id" value="nc.custom.swisscom.assurance" />
+      <option name="name" value="nc.custom.swisscom.assurance" />
+      <option name="url" value="https://nexussrv.netcracker.com/content/repositories/nc.custom.swisscom.assurance/" />
+    </remote-repository>
+    <remote-repository>
+      <option name="id" value="nexussrv.nc.thirdparty" />
+      <option name="name" value="nexussrv.nc.thirdparty" />
+      <option name="url" value="https://nexussrv.netcracker.com/content/repositories/nc.thirdparty_sync/" />
+    </remote-repository>
+    <remote-repository>
+      <option name="id" value="nc.custom.swisscom.all-ip.frmw" />
+      <option name="name" value="nc.custom.swisscom.all-ip.frmw" />
+      <option name="url" value="https://nexussrv.netcracker.com/content/repositories/nc.custom.swisscom.all-ip.frmw/" />
+    </remote-repository>
+    <remote-repository>
+      <option name="id" value="nc.general" />
+      <option name="name" value="nc.general" />
+      <option name="url" value="https://nexussrv.netcracker.com/content/repositories/nc.general" />
+    </remote-repository>
+    <remote-repository>
+      <option name="id" value="mirrors.ibiblio.org" />
+      <option name="name" value="mirrors.ibiblio.org" />
+      <option name="url" value="https://nexussrv.netcracker.com/content/repositories/ibiblio" />
+    </remote-repository>
+    <remote-repository>
+      <option name="id" value="nc.custom.swisscom.assurance.thirdparty" />
+      <option name="name" value="nc.custom.swisscom.assurance.thirdparty" />
+      <option name="url" value="https://nexussrv.netcracker.com/content/repositories/nc.custom.swisscom.assurance.thirdparty/" />
+    </remote-repository>
+    <remote-repository>
+      <option name="id" value="jboss.community" />
+      <option name="name" value="JBoss Community repository" />
+      <option name="url" value="https://repository.jboss.org/nexus/content/repositories/public/" />
+    </remote-repository>
+    <remote-repository>
+      <option name="id" value="pd.sandbox.mvn" />
+      <option name="name" value="pd.sandbox.mvn" />
+      <option name="url" value="https://artifactorycn.netcracker.com/pd.sandbox.mvn/" />
+    </remote-repository>
+    <remote-repository>
+      <option name="id" value="download.java.net" />
+      <option name="name" value="download.java.net" />
+      <option name="url" value="https://nexussrv.netcracker.com/content/repositories/java.net-m2" />
+    </remote-repository>
+    <remote-repository>
+      <option name="id" value="nexussrv.nc.general" />
+      <option name="name" value="nexussrv.nc.general" />
+      <option name="url" value="https://nexussrv.netcracker.com/content/repositories/nc.general_sync/" />
+    </remote-repository>
+    <remote-repository>
+      <option name="id" value="nc.custom.swisscom.all-ip" />
+      <option name="name" value="nc.custom.swisscom.all-ip" />
+      <option name="url" value="https://nexussrv.netcracker.com/content/repositories/nc.custom.swisscom.all-ip/" />
+    </remote-repository>
+    <remote-repository>
+      <option name="id" value="nc.thirdparty_sync" />
+      <option name="name" value="nc.thirdparty_sync" />
+      <option name="url" value="https://nexussrv.netcracker.com/content/repositories/nc.thirdparty_sync" />
+    </remote-repository>
+    <remote-repository>
+      <option name="id" value="central" />
+      <option name="name" value="Central Repository" />
+      <option name="url" value="https://repo.maven.apache.org/maven2" />
+    </remote-repository>
+    <remote-repository>
+      <option name="id" value="nc.custom.swisscom.all-ip.thirdparty" />
+      <option name="name" value="nc.custom.swisscom.all-ip.thirdparty" />
+      <option name="url" value="https://nexussrv.netcracker.com/content/repositories/nc.custom.swisscom.all-ip.thirdparty/" />
+    </remote-repository>
+    <remote-repository>
+      <option name="id" value="central" />
+      <option name="name" value="Maven Central repository" />
+      <option name="url" value="https://repo1.maven.org/maven2" />
+    </remote-repository>
+    <remote-repository>
+      <option name="id" value="nexussrv.nc.snapshot" />
+      <option name="name" value="nexussrv.nc.snapshot" />
+      <option name="url" value="https://nexussrv.netcracker.com/content/repositories/nc.custom.swisscom.all-ip.snapshot/" />
+    </remote-repository>
+    <remote-repository>
+      <option name="id" value="nc.general_sync" />
+      <option name="name" value="nc.general_sync" />
+      <option name="url" value="https://nexussrv.netcracker.com/content/repositories/nc.general_sync" />
+    </remote-repository>
+    <remote-repository>
+      <option name="id" value="pd.dtrust.mvn.staging" />
+      <option name="name" value="pd.dtrust.mvn.staging" />
+      <option name="url" value="https://artifactorycn.netcracker.com/pd.dtrust.mvn.staging" />
+    </remote-repository>
+    <remote-repository>
+      <option name="id" value="repository.jboss.org" />
+      <option name="name" value="repository.jboss.org" />
+      <option name="url" value="https://nexussrv.netcracker.com/content/repositories/jboss-public" />
+    </remote-repository>
+    <remote-repository>
+      <option name="id" value="pd.sandbox.mvn.staging" />
+      <option name="name" value="pd.sandbox.mvn.staging" />
+      <option name="url" value="https://artifactorycn.netcracker.com/pd.sandbox.mvn.staging/" />
+    </remote-repository>
+    <remote-repository>
+      <option name="id" value="pd.dtrust.mvn.snapshots" />
+      <option name="name" value="pd.dtrust.mvn.snapshots" />
+      <option name="url" value="https://artifactorycn.netcracker.com/pd.dtrust.mvn.snapshots" />
+    </remote-repository>
+    <remote-repository>
+      <option name="id" value="nc.tools" />
+      <option name="name" value="nc.tools" />
+      <option name="url" value="https://nexussrv.netcracker.com/content/repositories/nc.tools" />
+    </remote-repository>
+    <remote-repository>
+      <option name="id" value="nc.custom.swisscom.assurance.kernel5" />
+      <option name="name" value="nc.custom.swisscom.assurance.kernel5" />
+      <option name="url" value="https://nexussrv.netcracker.com/content/repositories/nc.custom.swisscom.assurance.kernel5/" />
+    </remote-repository>
+    <remote-repository>
+      <option name="id" value="spring-milestones" />
+      <option name="name" value="Spring Milestones" />
+      <option name="url" value="https://repo.spring.io/milestone" />
+    </remote-repository>
+    <remote-repository>
+      <option name="id" value="nc.tools-repositories" />
+      <option name="name" value="nc.tools-repositories" />
+      <option name="url" value="https://nexussrv.netcracker.com/content/repositories/tools-repositories" />
+    </remote-repository>
+    <remote-repository>
+      <option name="id" value="nc.thirdparty" />
+      <option name="name" value="nc.thirdparty" />
+      <option name="url" value="https://nexussrv.netcracker.com/content/repositories/nc.thirdparty" />
+    </remote-repository>
+    <remote-repository>
+      <option name="id" value="pd.dtrust.mvn" />
+      <option name="name" value="pd.dtrust.mvn" />
+      <option name="url" value="https://artifactorycn.netcracker.com/pd.dtrust.mvn/" />
+    </remote-repository>
+    <remote-repository>
+      <option name="id" value="nc.super.poms" />
+      <option name="name" value="nc.super.poms" />
+      <option name="url" value="https://nexussrv.netcracker.com/content/repositories/nc.super.poms" />
+    </remote-repository>
+    <remote-repository>
+      <option name="id" value="pd.sandbox.mvn.snapshots" />
+      <option name="name" value="pd.sandbox.mvn.snapshots" />
+      <option name="url" value="https://artifactorycn.netcracker.com/pd.sandbox.mvn.snapshots/" />
+    </remote-repository>
+  </component>
+</project>

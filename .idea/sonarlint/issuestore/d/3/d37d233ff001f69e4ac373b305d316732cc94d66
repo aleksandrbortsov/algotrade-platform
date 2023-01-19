@@ -1,0 +1,11 @@
+
+P	java:S125"<This block of commented-out lines of code should be removed.(€Äu
+X	java:S125"<This block of commented-out lines of code should be removed.(ìÅğ8‚¬ËåÍ0
+d
+java:S1854"BRemove this useless assignment to local variable "userDetailsDto".(¾Èİøşÿÿÿÿ8ƒ¬ËåÍ0
+X	java:S125"<This block of commented-out lines of code should be removed.(°ò’Ø8ƒ¬ËåÍ0
+U
+java:S1481"3Remove this unused "userDetailsDto" local variable.(¾Èİøşÿÿÿÿ8„¬ËåÍ0
+]	java:S125"<This block of commented-out lines of code should be removed.(•ùŒĞÿÿÿÿÿ8†¬ËåÍ0
+]	java:S125 "<This block of commented-out lines of code should be removed.(äñÙüÿÿÿÿ8†¬ËåÍ0
+Z	java:S106("9Replace this use of System.out or System.err by a logger.(ë¦±Îüÿÿÿÿ8‰¬ËåÍ0

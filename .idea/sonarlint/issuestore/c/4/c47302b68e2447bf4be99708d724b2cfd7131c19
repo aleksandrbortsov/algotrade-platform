@@ -1,0 +1,12 @@
+
+^
+java:S2094	"BRemove this empty class, write its code or make it an "interface".(­Šªa8âÖĞäÍ0
+]	java:S125"<This block of commented-out lines of code should be removed.(íìŠøûÿÿÿÿ8äÖĞäÍ0
+e
+java:S1128"HRemove this unused import 'org.springframework.context.annotation.Bean'.(‚î‰Ş8äÖĞäÍ0
+s
+java:S1128"QRemove this unused import 'org.springframework.context.annotation.Configuration'.(¬²Úäşÿÿÿÿ8åÖĞäÍ0
+
+java:S1128"]Remove this unused import 'org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder'.(åÅÚ…ûÿÿÿÿ8åÖĞäÍ0
+{
+java:S1128"YRemove this unused import 'org.springframework.security.crypto.password.PasswordEncoder'.(‰¡ßáÿÿÿÿÿ8åÖĞäÍ0

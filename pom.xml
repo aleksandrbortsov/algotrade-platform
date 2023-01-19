@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>2.7.5</version>
+        <relativePath/> <!-- lookup parent from repository -->
+    </parent>
+
+    <groupId>pro.algotrade</groupId>
+    <artifactId>algo-trade-platform</artifactId>
+    <name>AlgoTrade Platform</name>
+    <description>Sit back, relax and enjoy the stress-free trading experience with AlgoTrade Platform Pro.
+
+        AlgoTrade is a strategy simulator based on actual market data.
+        Just enter your strategy and AlgoTrade will show you the strategy analysis, trades and much more.
+        Follow the most profitable strategy and trade with less risk forever.
+
+        Whether you are a professional trader or an investment newbie, AlgoTrade is here for you.
+        We believe that trading should not be complicated.
+        With AlgoTrade, everyone will be able to trade with a solid strategy, anywhere anytime.
+    </description>
+    <version>1.0</version>
+    <packaging>pom</packaging>
+
+    <properties>
+        <java.version>17</java.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <org.projectlombok.version>1.18.24</org.projectlombok.version>
+        <org.mapstruct.version>1.5.3.Final</org.mapstruct.version>
+        <spring-cloud.version>2021.0.5</spring-cloud.version>
+        <spring-boot-admin.version>2.7.7</spring-boot-admin.version>
+        <spring-boot-admin-ui.version>1.5.7</spring-boot-admin-ui.version>
+        <jsonwebtoken.version>0.11.5</jsonwebtoken.version>
+    </properties>
+
+    <modules>
+        <module>person-service</module>
+        <module>user-service</module>
+        <module>account-service</module>
+        <module>notification-service</module>
+        <module>auth-service</module>
+        <module>gateway-service</module>
+        <module>config-service</module>
+        <module>admin-service</module>
+    </modules>
+
+</project>
