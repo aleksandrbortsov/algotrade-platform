@@ -31,8 +31,9 @@
           <entry name="$MAVEN_REPOSITORY$/org/mapstruct/mapstruct/1.5.3.Final/mapstruct-1.5.3.Final.jar" />
         </processorPath>
         <module name="auth-service" />
-        <module name="person-service" />
         <module name="user-service" />
+        <module name="auth-server" />
+        <module name="person-service" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
@@ -44,6 +45,7 @@
       <module name="!demo" options="-parameters" />
       <module name="account-service" options="-parameters" />
       <module name="admin-service" options="-parameters" />
+      <module name="auth-server" options="-parameters" />
       <module name="auth-service" options="-parameters" />
       <module name="config-service" options="-parameters" />
       <module name="gateway-service" options="-parameters" />

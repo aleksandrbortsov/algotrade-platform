@@ -33,6 +33,7 @@ spring:
       allowOverride: true
       overrideNone: true
       overrideSystemProperties: false
+# create new SSH key on https://github.com/settings/keys
 #      server:
 #        bootstrap: true
 #        git:
