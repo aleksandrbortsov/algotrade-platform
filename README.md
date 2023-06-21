@@ -1,5 +1,6 @@
 # algotrade-platform
-Microservices platform to manage TinkoffAPI
+Microservices platform to manage TinkoffAPI. 
+JDK 17
 
 
 Для работы config-service необходимо сгенерить ssh-rsa ключ с помощью 

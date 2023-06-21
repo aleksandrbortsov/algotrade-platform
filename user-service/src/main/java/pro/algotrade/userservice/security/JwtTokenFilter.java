@@ -38,9 +38,7 @@ public class JwtTokenFilter extends OncePerRequestFilter {
         final String token = authorizationHeader.split(" ")[1].trim();
         try {
             jwtUtil.validateToken(token);
-        } catch (JwtTokenMalformedException e) {
-            throw new RuntimeException(e);
-        } catch (JwtTokenMissingException e) {
+        } catch (JwtTokenMalformedException | JwtTokenMissingException e) {
             throw new RuntimeException(e);
         }
 
