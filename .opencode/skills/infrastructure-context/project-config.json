@@ -1,0 +1,151 @@
+{
+  "initialized": true,
+  "timestamp": "2026-11-09T19:59:10Z",
+  "framework": "Spring Cloud Config native + Consul + Spring Boot Admin",
+  "version": "Spring Cloud 2021.0.5; Spring Boot Admin 2.7.7",
+  "cloudProvider": "None configured",
+  "cicdPlatform": "None — no .github, GitLab CI, Jenkinsfile, Azure Pipeline, CircleCI or other pipeline definition exists",
+  "containerization": "Single-stage Dockerfiles only for person-service and user-service; both require a pre-built jar, expose a fictional 8080 while services use random ports, and there is no Docker Compose file",
+  "orchestration": "None — no Kubernetes manifests, Helm chart, Terraform or other deployment definition",
+  "deploymentStrategy": "Manual local runtime: start Consul, MySQL and config-service, then start Spring Boot jars; service discovery resolves random ports. No automated deployment or promotion path exists.",
+  "monitoringStack": "Spring Boot Admin UI + Actuator + rolling file logs; no Prometheus, Micrometer registry, centralized logging or alerting",
+  "environments": [
+    {
+      "name": "dev-local",
+      "profile": "default / native",
+      "configurationSource": "config-service classpath:/config/ plus local module configuration",
+      "requiredServices": [
+        "Consul localhost:8500",
+        "config-service :8888",
+        "MySQL localhost:3306 persons_schema",
+        "MySQL localhost:3307 users_schema"
+      ],
+      "fixedPorts": {
+        "config-service": 8888,
+        "gateway-service": 3535,
+        "auth-service": 9000,
+        "admin-service": 5555
+      },
+      "randomPorts": [
+        "person-service",
+        "user-service",
+        "notification-service"
+      ],
+      "notes": "This is the only environment expressible by the repository."
+    }
+  ],
+  "configuration": {
+    "configServerRoot": "config-service/src/main/resources/config/",
+    "gatewayRoutes": "config-service/src/main/resources/config/gateway-service.yml",
+    "centralConfigConsumers": [
+      "gateway-service",
+      "notification-service",
+      "person-service",
+      "user-service"
+    ],
+    "localConfigConsumers": [
+      "auth-service",
+      "admin-service",
+      "account-service",
+      "config-service"
+    ],
+    "analysis": [
+      ".opencode/project/analysis/config-service.json",
+      ".opencode/project/analysis/admin-service.json"
+    ],
+    "dockerfiles": [
+      "person-service/Dockerfile",
+      "user-service/Dockerfile"
+    ],
+    "environmentOverrides": [
+      "CONFIG_SERVER",
+      "ADMIN_SERVER",
+      "APP_JWT_SECRET"
+    ],
+    "committedLogRoots": [
+      "config-service/logs/"
+    ]
+  },
+  "integrations": [
+    {
+      "name": "HashiCorp Consul",
+      "purpose": "Service registration and gateway lookup",
+      "location": "localhost:8500",
+      "status": "active prerequisite",
+      "risk": "register-health-check is false in every delivered service, and Consul never evicts a dead instance"
+    },
+    {
+      "name": "MySQL",
+      "purpose": "persons_schema and users_schema persistence",
+      "location": "localhost:3306 and localhost:3307",
+      "status": "active prerequisite, manually provisioned",
+      "risk": "No compose file; Hibernate ddl-auto:update owns schema history and plaintext credentials are delivered through config-service"
+    },
+    {
+      "name": "Gmail SMTP",
+      "purpose": "Outbound birthday/notification email",
+      "location": "smtp.gmail.com:587",
+      "status": "active configured integration",
+      "risk": "plaintext username and app password, no timeout/retry/idempotency, no fallback provider"
+    },
+    {
+      "name": "Spring Cloud Config",
+      "purpose": "Centralized configuration delivery",
+      "location": "localhost:8888",
+      "status": "active native classpath backend",
+      "risk": "unauthenticated, only 4 of 8 services consume it, and the git backend block remains committed but inactive"
+    },
+    {
+      "name": "Spring Boot Admin",
+      "purpose": "Service monitoring UI",
+      "location": "localhost:5555",
+      "status": "active server and client registrations",
+      "risk": "admin UI binds all interfaces, uses one committed credential pair, and admin-service is not monitored itself"
+    },
+    {
+      "name": "GitHub config-repo",
+      "purpose": "Original external configuration repository",
+      "location": "git@github.com:aleksandrbortsov/config-repo.git",
+      "status": "declared but inactive",
+      "risk": "The SSH block and deploy-key material are still committed while README describes it as active"
+    },
+    {
+      "name": "Kafka",
+      "purpose": "Intended mail event path",
+      "location": "not configured",
+      "status": "inactive commented code only",
+      "risk": "No spring-kafka dependency exists in any pom; do not describe the platform as event-driven"
+    }
+  ],
+  "patterns": [
+    "Config-service uses the native Spring Cloud Config backend and serves checked-in classpath:/config/ YAML files; no git fetch occurs at runtime",
+    "Fixed ports are reserved for infrastructure and edge components; business services mostly use server.port: 0 and Consul-assigned ephemeral ports",
+    "Gateway route definitions are authored in config-service, not gateway-service; discovery.locator.enabled makes the three explicit routes a convenience list rather than an allow-list",
+    "All four delivered service documents expose every actuator endpoint with include \"*\"",
+    "Logback file rolling is configured in every service, but four delivered documents use the deprecated logging.file.max-size and max-history keys",
+    "Consul host/port are hardcoded to localhost:8500 with no environment override",
+    "A Maven wrapper is committed in every module at Maven 3.8.6 / wrapper 3.1.0"
+  ],
+  "conventions": [
+    "Spring application name determines Consul service id and the native config-service document name",
+    "Configuration is currently local for auth-service, admin-service, account-service and config-service; central for gateway, notification, person and user",
+    "Environment overrides use ${NAME:default} for CONFIG_SERVER, ADMIN_SERVER and APP_JWT_SECRET",
+    "Runtime logs are written under the working directory logs/ and must be added to .gitignore rather than tracked"
+  ],
+  "constraints": [
+    "P0 — secrets are committed and pushed to a public GitHub repository; externalization and history remediation are user-owned and not started",
+    "There is no staging or production deployment target, environment, secret store, CI runner or release process",
+    "No container base images, health checks, resource limits, reverse proxy, ingress or secret mounting are defined",
+    "Consul and MySQL are manual local prerequisites",
+    "account-service cannot start as committed because it has JPA but no datasource, no Consul dependency and no config-service document",
+    "Committed runtime logs may contain resolved secrets, but this is unverified",
+    "Do not expose any service port as a stable public contract without narrowing actuator exposure and adding authentication/authorization"
+  ],
+  "references": [
+    ".opencode/project/analysis/config-service.json",
+    ".opencode/project/analysis/admin-service.json",
+    ".opencode/project/analysis/account-service.json",
+    ".opencode/project/analysis/notification-service.json"
+  ],
+  "projectSpecificNotes": "Phase 4 found 7 deployable services plus 1 scaffold; 4 central configuration consumers, 4 local consumers; 2 Dockerfiles, 0 Compose, 0 orchestrator, 0 CI/CD and 0 real staging/production definitions. The infrastructure surface is local-first and not deployable as a cohesive platform."
+}

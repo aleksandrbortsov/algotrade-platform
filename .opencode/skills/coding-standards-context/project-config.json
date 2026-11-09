@@ -1,0 +1,117 @@
+{
+  "initialized": true,
+  "timestamp": "2026-11-09T19:59:10Z",
+  "framework": "Spring Boot microservices",
+  "version": "2.7.5",
+  "language": "Java 17 parent target; Maven multi-module reactor",
+  "linter": "None enforced in the Maven build — Checkstyle, SonarLint and PMD are configured only in IntelliJ project files",
+  "formatter": "None found",
+  "namingConventions": {
+    "basePackage": "pro.algotrade.<service>",
+    "modules": "kebab-case *-service Maven modules",
+    "classes": "PascalCase; *Controller, *Service, *ServiceImpl, *Repository, *Entity, *Dto, *Request, *Response, *Mapper",
+    "endpoints": "Unversioned plural resources such as /persons and /users",
+    "exceptions": "*RuntimeException or *Exception carrying an i18n message key and numeric business code",
+    "tests": "*.java under src/test/java, but the convention is mostly unused"
+  },
+  "documentationStandard": "No API specification or service README was found; controller signatures and gateway routes are the de-facto contract",
+  "typeStrictness": "Not applicable — no TypeScript; Java is statically typed",
+  "configuration": {
+    "parentPom": "pom.xml",
+    "analysisRoot": ".opencode/project/analysis/",
+    "primaryAnalysis": [
+      ".opencode/project/analysis/gateway-service.json",
+      ".opencode/project/analysis/auth-service.json",
+      ".opencode/project/analysis/user-service.json",
+      ".opencode/project/analysis/person-service.json",
+      ".opencode/project/analysis/account-service.json",
+      ".opencode/project/analysis/notification-service.json"
+    ],
+    "apiAnalysis": [
+      ".opencode/project/analysis/gateway-service.json",
+      ".opencode/project/analysis/auth-service.json",
+      ".opencode/project/analysis/user-service.json",
+      ".opencode/project/analysis/person-service.json",
+      ".opencode/project/analysis/admin-service.json"
+    ],
+    "databaseAnalysis": [
+      ".opencode/project/analysis/user-service.json",
+      ".opencode/project/analysis/person-service.json"
+    ]
+  },
+  "patterns": [
+    "Prefer the established Spring Boot 2.7 javax.* APIs; do not introduce jakarta.* or Spring Boot 3 syntax without an approved framework migration",
+    "Constructor injection through Lombok @RequiredArgsConstructor and final fields is dominant",
+    "MapStruct 1.5.3 is the established mapper pattern, but is currently consumed through static Mappers.getMapper() singletons in user-service and person-service",
+    "DTO conversion normally happens at the controller boundary; request/response DTOs live in controller.dto or dto packages",
+    "Checked business exceptions carry an i18n message key plus a GlobalErrorCode and are translated by a @ControllerAdvice",
+    "RestTemplate is the only live inter-service HTTP client pattern; gateway-service uses reactive WebClient internally",
+    "Configuration is externalised for gateway-service, person-service, user-service and notification-service through Spring Cloud Config; auth-service, admin-service, account-service and config-service use local configuration",
+    "No OpenFeign, OpenAPI, bean validation, Flyway, Liquibase, Kafka or eventing dependency is active"
+  ],
+  "conventions": [
+    "Use one Maven module per independently deployable Spring Boot service",
+    "spring.application.name is the Consul service id and the Spring Cloud Config document name",
+    "Unversioned REST paths are current project convention; adding /api/v1 is an architectural change requiring approval",
+    "Keep Jackson default-property-inclusion NON_NULL unless a migration is planned",
+    "Do not copy credentials from existing YAML into new files or examples",
+    "When touching a module, correct source/target 10 drift toward the inherited Java 17 configuration rather than adding new module-level pins"
+  ],
+  "constraints": [
+    "P0 — live credentials are committed in several YAML and properties files; treat all src/main/resources/** values as secrets until rotated and externalized",
+    "auth-service is not an active authorization server: OAuth2/security/JPA/JJWT signing beans are commented out and login returns the literal string token",
+    "gateway-service is a token relay, not a JWT validator; its Spring Security, java-jwt and jjwt declarations are commented out",
+    "user-service currently uses anyRequest().permitAll(), so service-level authentication is not enforced",
+    "account-service is a non-running scaffold and must not be counted as a functional backend service",
+    "notification-service has no application endpoints and is a scheduler-driven SMTP job",
+    "Only two test classes exist across the repository and no CI enforces build quality",
+    "A Maven wrapper is committed in every module, contrary to the earlier Phase 3 note",
+    "Adding spring-boot-starter-validation, Flyway/Liquibase, SAS, Kafka, Prometheus, or a different client pattern requires dependency/pattern discussion"
+  ],
+  "testing": {
+    "tddPolicy": "recommended",
+    "mandatoryCategories": [],
+    "policyNotes": "Phase 6 user selection: recommended is the default TDD policy for new behavior, with pragmatic exceptions. TaskMaster usage remains complex-only.",
+    "framework": "spring-boot-starter-test (JUnit 5, Mockito, AssertJ, MockMvc)",
+    "e2eFramework": "Not configured",
+    "coverageTool": "Not configured",
+    "runCommand": "mvn test",
+    "runAllCommand": "mvn test",
+    "watchCommand": "Not configured",
+    "fileNaming": "*Tests.java is the observed convention",
+    "fileLocation": "<module>/src/test/java",
+    "nameStyle": "No enforced convention observed",
+    "mockingStrategy": "Mockito and Spring Boot test slices are available but largely unused",
+    "coverageThresholds": {
+      "statements": "Not configured",
+      "branches": "Not configured",
+      "functions": "Not configured",
+      "lines": "Not configured",
+      "enforcement": "None"
+    },
+    "outputDir": "<module>/target/surefire-reports/",
+    "ciIntegration": "None — no CI configuration exists",
+    "taskmasterUsage": "complex-only",
+    "notes": "Two test classes were observed: a stale auth-service WebMvcTest referencing classes absent from its module, and a config-service contextLoads test that expects Consul. Effective automated coverage is near zero."
+  },
+  "codeQuality": {
+    "testFiles": 2,
+    "productionJavaFiles": 80,
+    "mainDefects": [
+      "auth-service and gateway-service security/auth dependencies are commented out rather than deleted",
+      "user-service has duplicate /users/{id} and /users/{username} path patterns",
+      "user-service update() ignores its request body and login() returns null",
+      "person-service persists an unverified userId and has no request validation",
+      "admin-service remember-me uses a random key regenerated on every restart",
+      "notification-service has no send timeout, retry or idempotency guard"
+    ]
+  },
+  "constraints.compliance": [
+    "TBD — Phase 5 Q3 was skipped; no formal compliance standard has been selected",
+    "Personal PII is logged at INFO by person-service controller methods",
+    "TOTP secret is stored plaintext and second factor is never verified",
+    "Actuator endpoints are exposed with include \"*\" and no service security",
+    "Personal mail recipients are hard-coded in notification-service"
+  ],
+  "projectSpecificNotes": "Phase 4 analysis corrected the Phase 3 assumptions: Java 17 is the parent target but several modules pin compiler source/target to 10; no formatter/lint gate runs; MapStruct and Lombok dominate; validation and API specs are absent; auth and gateway authentication are dormant scaffolding; account is a scaffold and notification is a scheduler-only service."
+}

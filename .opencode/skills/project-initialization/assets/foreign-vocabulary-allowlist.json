@@ -1,0 +1,31 @@
+{
+  "permanent": [
+    {
+      "file": "README.md",
+      "pattern": "Cursor",
+      "lines": "integrated terminal of Cursor IDE",
+      "reason": "factual: OpenCode runs in any terminal, including the IDE terminal (user wording)"
+    },
+    {
+      "file": ".opencode/skills/project-initialization/scripts/validate-doc-links.js",
+      "pattern": "cursor-path|cline",
+      "reason": "SKIP_DIRS names other harness directories that migrating consumers keep on disk"
+    },
+    {
+      "file": "CHANGELOG.md",
+      "reason": "release notes of the port name the vocabulary being removed and point at the Cursor-line history; not agent-facing context"
+    },
+    {
+      "file": ".opencode/rules/packages-index.json",
+      "pattern": "hooks-json|Cursor|SessionStart|apm-hooks-json|cursor-path",
+      "reason": "offline registry snapshot: package descriptions are catalogue-owned text (worklog-kit describes its Cursor adapter)"
+    },
+    {
+      "file": "docs/core/APM_PACKAGES.md",
+      "pattern": "cursor-path|mdc-ext|Cursor",
+      "lines": "^\\| \\*\\*Cursor\\*\\*",
+      "reason": "APM targets matrix: facts about the cursor target"
+    }
+  ],
+  "pending": []
+}

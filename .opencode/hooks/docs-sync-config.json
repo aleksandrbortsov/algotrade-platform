@@ -1,0 +1,20 @@
+{
+  "_comment": "Additive extensions to .opencode/hooks/docs-sync-check.js built-in defaults. Generated for stack: Java 17 / Spring Boot 2.7.5 / Maven multi-module (8 services), Spring Cloud + Consul, JPA + MySQL. Safe to hand-edit; this file is never overwritten by /update-workplace. Note: 'enabled' below is the user's Phase 0.5 choice for the docs-sync recommendation plugin, independent of the patterns.",
+  "enabled": false,
+  "categories": {
+    "backend": {
+      "patterns": ["(?:^|/)src/main/(java|kotlin)/", "\\.java$", "\\.kt$"]
+    },
+    "database": {
+      "patterns": ["(?:^|/)src/main/resources/db/", "\\.sql$"]
+    },
+    "config": {
+      "patterns": ["(?:^|/)config-service/src/main/resources/config/", "bootstrap\\.ya?ml$", "application(-[a-z]+)?\\.ya?ml$"]
+    }
+  },
+  "dependencyFiles": ["(?:^|/)-service/pom\\.xml$", "\\.iml$"],
+  "buildConfigFiles": ["(?:^|/)Dockerfile$"],
+  "ignoredPatterns": ["(?:^|/)logs/", "\\.log$", "\\.gz$", "(?:^|/)\\.idea/sonarlint/"],
+  "categorySkills": {},
+  "thresholds": {}
+}

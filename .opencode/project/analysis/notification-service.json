@@ -1,0 +1,197 @@
+{
+  "schemaVersion": 1,
+  "component": "notification-service",
+  "path": "notification-service",
+  "kind": "backend",
+  "languages": ["java"],
+  "coverage": "full",
+  "filesRead": 13,
+  "filesReadNote": "13 of the 35 budget: 8 of the module's 12 files - every analytically meaningful one (pom.xml, all 4 Java sources, bootstrap.yml, maven-wrapper.properties, .iml); mvnw, mvnw.cmd and the 2 binaries not opened. Plus 3 out-of-scope files the brief demanded: config-service/.../notification-service.yml (spring.mail.* names), user-service/.../MailServiceImpl.java (inbound-caller question), and the report schema/validator tooling.",
+  "generatedAt": "2026-11-09T19:14:07Z",
+
+  "entryPoints": [
+    {
+      "path": "notification-service/src/main/java/pro/algotrade/notificationservice/NotificaServicetionApplication.java:9",
+      "purpose": "@SpringBootApplication (line 7) + @EnableScheduling (line 8); the only main() in the module. Class name is a typo of \"NotificationApplication\" and is referenced nowhere else."
+    },
+    {
+      "path": "notification-service/src/main/resources/bootstrap.yml:1-3",
+      "purpose": "The module's ONLY configuration file: spring.application.name=notification-service (:2) and spring.config.import=optional:configserver:${CONFIG_SERVER:http://localhost:8888/} (:3). No application.yml / application.properties exists - all runtime config comes from config-service."
+    },
+    {
+      "path": "notification-service/src/main/java/pro/algotrade/notificationservice/listener/BirthdayListenerService.java:16-17",
+      "purpose": "@Scheduled(fixedDelay = DateUtils.MILLIS_PER_DAY) public void process() - the only trigger that actually runs; the de-facto runtime entry point. No @Bean or @Configuration type exists anywhere in the module."
+    }
+  ],
+
+  "architecture": {
+    "pattern": "Scheduler-driven single-purpose mailer packaged as a web application - no HTTP API layer. NOT controller -> service -> repository; the real chain is @Scheduled -> service -> JavaMailSender -> SMTP.",
+    "evidence": [
+      "0 @RestController / @Controller / @RequestMapping / @GetMapping / @PostMapping in the module; a regex sweep for those plus Entity|Repository|DataSource|javax.persistence|jpa|@Async|Retryable|RateLimit|@Transactional|@KafkaListener|@Bean|@Configuration|@ConfigurationProperties|@FeignClient returned 2 matches, both inside comments (BirthdayListenerService.java:27, KafkaListenerService.java:15).",
+      "Chain of custody: BirthdayListenerService.java:16-17 -> :31 mailService.sendEmailWithAttachment() -> MailService.java:33 createMimeMessage() -> :37 MimeMessageHelper(multipart) -> :60 javaMailSender.send(msg) -> smtp.gmail.com:587.",
+      "No persistence hop: no spring-boot-starter-data-jpa, no mysql-connector-java, no javax.persistence, no @Entity/@Repository/@Transactional anywhere.",
+      "spring-boot-starter-web (pom.xml:40-43) has no application-level consumer - it exists so the embedded container can serve Actuator + the Admin client.",
+      "2 of 4 classes are inert: KafkaListenerService.java has 0 active statements (whole body commented, lines 15-23).",
+      "No eventing: spring-kafka is declared in 0 of the 9 pom.xml files in the repository, while both intended sides are commented out - producer user-service/.../MailServiceImpl.java:11-16 and consumer KafkaListenerService.java:15-23."
+    ]
+  },
+
+  "folderStructure": {
+    "rootFiles": [
+      "notification-service/pom.xml (107 lines)",
+      "notification-service/notification-service.iml (6 lines - SonarLint uniqueId only, lines 3-5)",
+      "notification-service/mvnw + mvnw.cmd (not opened)",
+      "notification-service/.mvn/wrapper/maven-wrapper.properties (Maven 3.8.6, wrapper 3.1.0)",
+      "notification-service/.mvn/wrapper/maven-wrapper.jar (binary, not opened)"
+    ],
+    "packages": [
+      { "name": "pro.algotrade.notificationservice", "path": "notification-service/src/main/java/pro/algotrade/notificationservice", "files": 1 },
+      { "name": "pro.algotrade.notificationservice.service", "path": "notification-service/src/main/java/pro/algotrade/notificationservice/service", "files": 1 },
+      { "name": "pro.algotrade.notificationservice.listener", "path": "notification-service/src/main/java/pro/algotrade/notificationservice/listener", "files": 2 }
+    ],
+    "resources": [
+      "notification-service/src/main/resources/bootstrap.yml (3 lines)",
+      "notification-service/src/main/resources/static/image/imageQRCode.png (binary, not read; served at /image/imageQRCode.png by the default static-resource handler AND attached to every mail, MailService.java:55)"
+    ],
+    "totals": { "filesInModule": 12, "javaFiles": 4, "javaPackages": 3, "javaLines": 135, "testFiles": 0, "dockerfile": 0, "readme": 0 },
+    "missing": ["src/test (directory does not exist)", "Dockerfile", "README", ".gitignore", "application.yml"]
+  },
+
+  "dependencies": [
+    { "name": "spring-boot-starter-web (pom.xml:40-43)", "version": "2.7.5 (parent-managed)", "category": "runtime - imported in code: NO. No controller/servlet/filter class; provides embedded Tomcat for Actuator only." },
+    { "name": "spring-boot-starter-mail (pom.xml:45-48)", "version": "2.7.5 (parent-managed)", "category": "runtime - imported in code: YES. MailService.java:5-7 (SimpleMailMessage, JavaMailSender, MimeMessageHelper) + javax.mail imports :10-12. The ONLY pom in the repo declaring it." },
+    { "name": "commons-lang3 (pom.xml:34-38, scope provided)", "version": "parent-managed", "category": "utility - imported in code: YES. BirthdayListenerService.java:5 import org.apache.commons.lang3.time.DateUtils -> used at :16. Scope anomaly recorded under codeQuality.namingDefects." },
+    { "name": "spring-cloud-starter-bootstrap (pom.xml:24-27)", "version": "Spring Cloud 2021.0.5 (BOM import pom.xml:68-78)", "category": "bootstrap - imported in code: NO. It is what makes bootstrap.yml load at all (bootstrap context is off by default in Spring Cloud 2020+), yet bootstrap.yml:3 also uses the Boot 2.4+ spring.config.import mechanism - both config-import generations in play at once." },
+    { "name": "spring-cloud-starter-config (pom.xml:29-32)", "version": "Spring Cloud 2021.0.5", "category": "config-client - imported in code: NO; used via bootstrap.yml:3 optional:configserver:${CONFIG_SERVER:http://localhost:8888/}." },
+    { "name": "spring-cloud-starter-consul-discovery (pom.xml:50-53)", "version": "Spring Cloud 2021.0.5", "category": "service-registry - imported in code: NO; auto-registration only." },
+    { "name": "spring-boot-admin-starter-client (pom.xml:18-22)", "version": "${spring-boot-admin.version} = 2.7.7", "category": "observability - imported in code: NO; auto-config only, target URL from config-service notification-service.yml:23." },
+    { "name": "lombok (pom.xml:55-59, provided)", "version": "1.18.24", "category": "annotation-processor - imported in code: YES. @RequiredArgsConstructor (MailService.java:15, BirthdayListenerService.java:12), @Slf4j (KafkaListenerService.java:12, BirthdayListenerService.java:11). No @Data/@Getter/@Builder anywhere - consistent with having no DTOs." },
+    { "name": "spring-boot-starter-test (pom.xml:61-65, test)", "version": "2.7.5", "category": "test - DECLARED BUT NEVER USED: src/test does not exist; 0 test classes." },
+    { "name": "NOT declared: spring-boot-starter-data-jpa, mysql-connector-java, spring-boot-starter-security, spring-kafka, spring-cloud-starter-openfeign, spring-boot-starter-actuator (transitive via the Admin client only), mapstruct, spring-boot-starter-validation, spring-retry, spring-boot-starter-cache", "version": "n/a", "category": "the absence is the finding - see persistence and integrations." }
+  ],
+
+  "patterns": [
+    { "name": "Two mail-composition styles coexist; only one is reachable", "evidence": ["MailService.java:20-29 sendEmail() = SimpleMailMessage (text/plain), send at :28", "MailService.java:31-61 sendEmailWithAttachment() = createMimeMessage() (:33) + new MimeMessageHelper(msg, true) multipart (:37), setText(html,true) (:49), addAttachment(\"qr-code.png\", new ClassPathResource(\"/static/image/imageQRCode.png\")) (:55)", "sendEmail() has ZERO callers - the only call site in the module is BirthdayListenerService.java:31"] },
+    { "name": "No template engine - HTML body is a string literal", "evidence": ["MailService.java:49 helper.setText(\"<h1>Check attachment for image!</h1>\", true)", "MailService.java:25-26 subject/body literals (\"Testing from Spring Boot\" / \"Hello World \\n Spring Boot Email\")", "No Thymeleaf/Freemarker/Mustache dependency; no template file under src/main/resources"] },
+    { "name": "Hard-coded recipients, no recipient parameter, no configurable From", "evidence": ["MailService.java:23 msg.setTo(<two personal addresses>) - PII, values not reproduced", "MailService.java:39 new InternetAddress(<personal address>); second address and the InternetAddress[] array commented out at :40,:42", "No spring.mail.from in config-service/src/main/resources/config/notification-service.yml, so From is whatever smtp.gmail.com stamps"] },
+    { "name": "Synchronous send on the single scheduler thread", "evidence": ["0 active matches for @Async|@Retry|Retryable|RateLimit|@Transactional over notification-service/", "BirthdayListenerService.java:16 fixedDelay (not cron) - the 24 h clock restarts after completion", "No @EnableAsync / TaskScheduler / Executor bean in the module"] },
+    { "name": "Error handling is partial and lossy: only message assembly is guarded, the SMTP send is not", "evidence": ["MailService.java:56-58 catch (MessagingException e) { throw new RuntimeException(e); } wraps the BUILD step; javaMailSender.send(msg) sits OUTSIDE the try at :61", "MailService.java:28 sendEmail() has no try/catch at all", "No @Retryable / RetryTemplate / spring-retry / error channel / dead-letter / fallback address / idempotency key", "A MailException / AuthenticationException / SMTPSendException from send() propagates to the Spring scheduler, which logs it and waits for the next window - the notification is silently lost"] },
+    { "name": "No rate limit, no dedupe, no daily idempotency guard", "evidence": ["0 active matches for RateLimit / Retryable / @Async", "Sole throttle in the design = @Scheduled(fixedDelay = 86 400 000 ms) at BirthdayListenerService.java:16", "No cache, DB row or in-memory marker for \"already sent today\" - a restart before the delay elapses re-sends the same mail (restart-storm risk)"] },
+    { "name": "Constructor injection via Lombok only; no @Bean factory methods", "evidence": ["MailService.java:15,18 @Service + @RequiredArgsConstructor + private final JavaMailSender", "BirthdayListenerService.java:12,15 same shape", "0 active @Bean / @Configuration classes - everything is Spring Boot auto-configuration + component scan"] },
+    { "name": "Commented-out code as an architectural artefact (dead intent, not dead cleanup)", "evidence": ["KafkaListenerService.java:4-8,15-23 - the entire Consumer<KStream<Object,String>> bean body", "BirthdayListenerService.java:19-29 - a commented RestTemplate/HttpHeaders call to http://localhost:8087/internal/users with the source article URL left at :19; the live body at :31 ignores users entirely", "user-service/src/main/java/pro/algotrade/userservice/service/impl/MailServiceImpl.java:4,11-16 - the mirrored producer side (KafkaTemplate to topic \"mails\"), also commented"] }
+  ],
+
+  "businessModules": [
+    { "name": "Scheduled birthday/notification mailer", "path": "notification-service/src/main/java/pro/algotrade/notificationservice/listener", "purpose": "Time-based trigger layer (2 files: 1 active, 1 fully commented). Runs once per fixedDelay day and delegates to the mail module. Named \"birthday\" but performs no birthday query - that query is commented out at BirthdayListenerService.java:19-29, so it sends one generic email regardless of any user." },
+    { "name": "SMTP mail delivery (JavaMailSender transport)", "path": "notification-service/src/main/java/pro/algotrade/notificationservice/service", "purpose": "The component's only real capability: compose a message and hand it to JavaMailSender. Two styles implemented (SimpleMailMessage, multipart MimeMessage with attachment); only the multipart variant is ever invoked." },
+    { "name": "Bootstrap, config import and scheduling enablement", "path": "notification-service/src/main/java/pro/algotrade/notificationservice/NotificaServicetionApplication.java", "purpose": "SpringApplication.run + @EnableScheduling (:8) - without line 8 the @Scheduled job never fires. Sources all runtime configuration from config-service via bootstrap.yml:3 instead of a local application.yml." }
+  ],
+
+  "entities": [],
+
+  "endpointGroups": [],
+
+  "httpSurface": [
+    { "pathPattern": "/actuator/** (framework-provided, not an application endpoint)", "methods": ["GET"], "auth": "none - spring-boot-starter-security is not a dependency of this module", "evidence": "config-service/src/main/resources/config/notification-service.yml:14-17 sets management.endpoints.web.exposure.include=\"*\" and health.show-details=always; port is random (server.port: 0, lines 1-2 of the same file)." },
+    { "pathPattern": "/image/imageQRCode.png (default static-resource handler)", "methods": ["GET"], "auth": "none", "evidence": "notification-service/src/main/resources/static/image/imageQRCode.png sits in the default static location; spring-boot-starter-web is on the classpath (pom.xml:40-43) with no security filter and no resource-handler customization." }
+  ],
+
+  "apiSpecDiscovery": { "status": "not found", "evidence": "No springdoc-openapi, no swagger-annotations, no Spring Cloud Contract, no OpenAPI/Swagger .yaml/.json, no @ApiResponse/@Operation annotations. The module has exactly one resource file (bootstrap.yml)." },
+
+  "persistence": {
+    "verdict": "none - stateless (confirmed)",
+    "evidence": [
+      "notification-service/pom.xml:16-67 read in full - 8 compile dependencies + 1 test dependency; spring-boot-starter-data-jpa is not among them.",
+      "No JDBC driver: mysql-connector-java absent; no H2/Postgres; no HikariCP override.",
+      "Regex sweep for Entity|Repository|DataSource|javax.persistence|jpa|@Transactional over notification-service/ -> 0 active matches (2 hits, both inside comments).",
+      "No local application.yml, and config-service/src/main/resources/config/notification-service.yml defines no spring.datasource.* either.",
+      "No cache dependency (no spring-boot-starter-cache, no Redis): the component holds no state between runs - which is why the missing dedupe guard cannot be implemented in-process today.",
+      "Contradiction: notification-service.yml:10-12 sets logging.level.org.hibernate.SQL=debug / type.descriptor.sql=trace for a service with no Hibernate on its classpath - a copy-paste leftover that will mislead the next reader."
+    ]
+  },
+
+  "integrations": [
+    {
+      "name": "Gmail SMTP relay - spring.mail.host=smtp.gmail.com, port 587, smtp.auth=true, starttls.enable=true",
+      "package": "spring-boot-starter-mail -> javax.mail (JavaMail / com.sun.mail) JavaMailSenderImpl; the javax.* namespace is confirmed by MailService.java:10-12, i.e. Java EE 8, not Jakarta",
+      "usedIn": ["notification-service/src/main/java/pro/algotrade/notificationservice/service/MailService.java:18 (injected field)", "notification-service/src/main/java/pro/algotrade/notificationservice/service/MailService.java:28 and :60 (javaMailSender.send)", "config-service/src/main/resources/config/notification-service.yml:36-56 (property NAMES only; values withheld)"],
+      "purpose": "The platform's single outbound integration: SMTP submission on 587 with AUTH and STARTTLS.",
+      "complianceHint": "SECURITY, P0 carry-over (already tracked in .opencode/project_init.md): config-service/src/main/resources/config/notification-service.yml:39-40 - spring.mail.username and spring.mail.password are plaintext literals - no ${ENV} placeholder, no Vault/Consul-Secrets indirection, committed to a repo whose remote is public GitHub. Values are deliberately not reproduced in either artifact, in any form including masked or truncated. Same file already shows the correct pattern at :23 (env override), so it simply was not applied here. Secondary: gmail.com is a consumer provider and :40 is a 16-char Google app password - delivery breaks if Google revokes legacy app passwords, and no fallback host is configured."
+    },
+    {
+      "name": "HashiCorp Consul service registry (localhost:8500)",
+      "package": "spring-cloud-starter-consul-discovery",
+      "usedIn": ["notification-service/pom.xml:50-53", "config-service/src/main/resources/config/notification-service.yml:28-34"],
+      "purpose": "Registers the instance with instance-id \"${spring.cloud.client.hostname}_${spring.application.name}:${random.value}\".",
+      "complianceHint": "register-health-check=false (:33) means Consul never probes this instance - a crashed mailer stays registered. With server.port: 0 and zero inbound endpoints, registration advertises a service nobody is allowed to call."
+    },
+    {
+      "name": "Spring Cloud Config Server (http://localhost:8888/, env override CONFIG_SERVER)",
+      "package": "spring-cloud-starter-config + spring-cloud-starter-bootstrap",
+      "usedIn": ["notification-service/src/main/resources/bootstrap.yml:3", "notification-service/pom.xml:24-32"],
+      "purpose": "Supplies the ENTIRE runtime configuration of this service (mail, consul, admin, logging, actuator); the module ships no application.yml.",
+      "complianceHint": "The optional: prefix means the service still starts if config-service is down, leaving JavaMailSender on the Spring Boot MailSenderProperties defaults (localhost:25, no auth) - a silently mis-wired mailer instead of a start-up failure. No fail-fast, no mail health indicator asserted at boot."
+    },
+    {
+      "name": "Spring Boot Admin Server (http://localhost:5555/, env override ADMIN_SERVER)",
+      "package": "de.codecentric:spring-boot-admin-starter-client 2.7.7",
+      "usedIn": ["notification-service/pom.xml:18-22", "config-service/src/main/resources/config/notification-service.yml:19-23"],
+      "purpose": "Fleet monitoring registration; also the only reason Actuator is on the classpath (no pom in the repo declares spring-boot-starter-actuator directly).",
+      "complianceHint": "Actuator web-exposed with include:\"*\" and show-details:always and no Spring Security on the classpath - treat the random HTTP port as a full-info surface, never as localhost-only."
+    },
+    {
+      "name": "Apache Kafka (Streams) - ABSENT, intended but never wired",
+      "package": "none - spring-kafka / kafka-streams appear in 0 of the 9 pom.xml files in the repository",
+      "usedIn": ["notification-service/src/main/java/pro/algotrade/notificationservice/listener/KafkaListenerService.java:4-6,15-23 (commented)", "user-service/src/main/java/pro/algotrade/userservice/service/impl/MailServiceImpl.java:4,11-16 (commented, cross-component)"],
+      "purpose": "The designed event-driven notification path (topic \"mails\", payload \"<action>: <content>\") exists only as commented code on both producer and consumer sides, with no dependency to support either.",
+      "complianceHint": "Do not describe the platform as event-driven on the strength of the class name KafkaListenerService - it is an empty @Service. Any recommendation that reintroduces Kafka needs the dependency-approval gate (development.md, Dependency Governance)."
+    }
+  ],
+
+  "crossComponentDependencies": [
+    { "targetPath": "config-service/src/main/resources/config/notification-service.yml", "via": "Spring Cloud Config at boot - the module's whole runtime configuration lives outside its directory. Opened read-only only because the brief required the spring.mail.* property names." },
+    { "targetPath": "pom.xml", "via": "Maven parent pro.algotrade:algo-trade-platform:1.0 (pom.xml:5-9) + <module>notification-service</module> (pom.xml:46); spring-cloud-dependencies BOM imported at notification-service/pom.xml:68-78." },
+    { "targetPath": "user-service/src/main/java/pro/algotrade/userservice/service/impl/MailServiceImpl.java", "via": "NO runtime dependency in either direction - a parallel, also-disabled notification implementation (NotificationService interface at .../service/NotificationService.java:3 + commented KafkaTemplate). Recorded because it explains why notification-service has no inbound callers." },
+    { "targetPath": "config-service/src/main/resources/config/gateway-service.yml", "via": "NOT a dependency: exactly 3 routes at lines 38-51 (lb://auth-service, lb://user-service, lb://person-service), none for notification-service - the service is unreachable from the edge." }
+  ],
+
+  "answersToBriefQuestions": {
+    "a_endpoints_that_trigger_email": "None. The module exposes zero application endpoints (0 @RestController/@Controller/@RequestMapping - see endpointGroups[]), so nothing is authenticated and nothing is un-authenticated either. The only code path that sends mail is the scheduler: BirthdayListenerService.java:16-17 -> :31 -> MailService.java:60. Service-level authentication does not exist at all: spring-boot-starter-security and spring-security-oauth2-resource-server are absent from notification-service/pom.xml:16-67, so the only HTTP that does answer - /actuator/** (exposed \"*\", notification-service.yml:14-17) and /image/imageQRCode.png - is unauthenticated at the service level. Its only real protection is accidental: server.port: 0 gives no stable port and gateway-service.yml:38-51 has no route to it.",
+    "b_mail_property_names": "config-service/src/main/resources/config/notification-service.yml, block spring.mail at lines 36-56. NAMES present: spring.mail.host (37 - value is the hostname smtp.gmail.com, cited as a hostname, not a credential), spring.mail.port (38 = 587), spring.mail.username (39), spring.mail.password (40), spring.mail.properties.mail.smtp.auth (46 = true), spring.mail.properties.mail.smtp.starttls.enable (51-52 = true). Lines 39-40 are PLAINTEXT LITERALS - no ${...} indirection, no default, no secret-store reference; they are committed credentials and their values are intentionally not reproduced here in any form, including masked or truncated. The auth/starttls booleans are literals too but are not secrets. ABSENT: any mail.enabled-style flag (no kill switch - mail cannot be stopped without a code change), spring.mail.default-encoding, spring.mail.protocol, spring.mail.from / from-address; COMMENTED OUT: smtp.connectiontimeout|timeout|writetimeout (47-49), starttls.required (53), socketFactory.* for SSL/465 (55-56). Consequence of the commented timeout block: javaMailSender.send() at MailService.java:28 and :60 can block on the JavaMail default read timeout and stall the only scheduler thread.",
+    "c_rate_limit_or_dedupe": "None. No RateLimit / @Async / @Retryable / RetryTemplate / spring-retry / cache dependency in notification-service/pom.xml, and no in-memory or persisted \"already sent\" marker. The sole throttle is @Scheduled(fixedDelay = DateUtils.MILLIS_PER_DAY) at BirthdayListenerService.java:16 - a delay, not a rate limit and not an idempotency guard - so a restart before the delay elapses re-sends the same mail to the same hard-coded recipients (MailService.java:23 -> 2 addresses, :39 -> 1 address), with no configurable burst target.",
+    "d_do_other_services_call_this": "No - not one. Outside the module, notification-service appears only in build/IDE metadata (pom.xml:46; .idea/misc.xml:13; .idea/compiler.xml:12,79; .idea/encodings.xml:13) and in its own config-service YAML. No Feign client, no RestTemplate, no WebClient, no DiscoveryClient lookup targets it; gateway-service.yml:38-51 routes only to auth-service, user-service and person-service; no Kafka topic links anything (spring-kafka in 0 poms). The would-be caller, user-service, owns its own disabled pair instead - user-service/src/main/java/pro/algotrade/userservice/service/NotificationService.java:3 and .../service/impl/MailServiceImpl.java:10-17, whose KafkaTemplate body is commented out. Net: two disabled notification implementations, zero connections between them."
+  },
+
+  "codeQuality": {
+    "testFiles": "not found - src/test/ does not exist (full module listing = 12 files, none under src/test) although spring-boot-starter-test is declared at pom.xml:61-65. Effective coverage of the 4 classes: 0%.",
+    "lintAndFormat": "not found in-module - no Checkstyle/PMD/SpotBugs/spring-javaformat/.editorconfig under notification-service/. notification-service.iml:3-5 carries only a SonarLint uniqueId; .idea/sonarlint/issuestore/index.pb hashes 4 of this module's files (3 Java sources + pom.xml) - analysis is IDE-local, on a developer's machine only.",
+    "buildEnforcement": "none - pom.xml:80-95 configures only spring-boot-maven-plugin (with the lombok repackage exclusion); no surefire/failsafe/jacoco configuration, so nothing gates a merge.",
+    "ci": "not found - no .github/, no .gitlab-ci.yml, no Jenkinsfile anywhere in the repository.",
+    "namingDefects": [
+      "NotificaServicetionApplication - typo of NotificationApplication at NotificaServicetionApplication.java:9; referenced nowhere else, so a rename is module-local.",
+      "Dead method: MailService.sendEmail() (:20-29) has zero callers; KafkaListenerService is an empty @Service whose name promises a Kafka consumer.",
+      "commons-lang3 is scope provided (pom.xml:37) yet used at BirthdayListenerService.java:16; it works only because DateUtils.MILLIS_PER_DAY is a static final inlined at compile time - the first non-constant commons-lang3 call here yields NoClassDefFoundError at runtime.",
+      "No dependency-name defect: the starter artifactId lines in pom.xml (26, 31, 36, 42, 47, 52, 63) match their canonical Maven coordinates, verified by exact-text grep."
+    ]
+  },
+
+  "gaps": [
+    "EXPLICIT FINDING, not an unfinished scan: notification-service owns NO domain type. entities[] is empty by evidence. There is no DTO, record, enum, JPA @Entity, @ConfigurationProperties-bound type, custom exception or interface - the 4 files are NotificaServicetionApplication.java (15 lines, main only), MailService.java (62 lines, 2 void send methods with zero parameters), KafkaListenerService.java (25 lines, 0 active statements) and BirthdayListenerService.java (33 lines, 1 void @Scheduled method). With no parameters and no return values (MailService.java:20, :31) there is no request/response contract to model. validate-analysis.js will flag backend-with-0-entities as shallow; the correct response is NOT a narrowed follow-up dispatch, because there is nothing there to find.",
+    "EXPLICIT FINDING: endpointGroups[] is empty for the same verified reason (0 @RestController/@Controller/@RequestMapping/@GetMapping/@PostMapping). The only HTTP surface is framework-provided and is listed under the extra httpSurface key. Consequence for Phase 6: this component contributes nothing to an api domain skill and index.json -> coverage.api must not be flipped to true on its account.",
+    "Runtime behaviour unverified: no build and no run (read-only analysis), so whether Gmail delivery currently succeeds, and whether the daily email has actually been firing, is unknown.",
+    "Intended business semantics are unrecoverable from code: the user query that should select birthday recipients is commented out at BirthdayListenerService.java:19-29, so birthday-only notifications vs a general notification fan-out cannot be determined statically.",
+    "Binaries/launchers deliberately not opened: .mvn/wrapper/maven-wrapper.jar, src/main/resources/static/image/imageQRCode.png, mvnw, mvnw.cmd. The QR image content is unverified - only that it is attached to every outgoing mail (MailService.java:55) and sits under a publicly-served path.",
+    "Actuator being on the runtime classpath is an inference from de.codecentric:spring-boot-admin-starter-client (no pom declares spring-boot-starter-actuator directly); a dependency tree could not be produced because no Maven invocation is permitted in this analysis.",
+    "Documentation conflict for the orchestrator to resolve: .opencode/rules/development.md states \"No Maven wrapper is committed - use a local mvn\", yet this module ships mvnw, mvnw.cmd and .mvn/wrapper/maven-wrapper.properties (Maven 3.8.6). Either the rule is stale or the wrapper is module-local; this report changes neither."
+  ],
+
+  "recommendations": [
+    "Credentials (P0, already tracked in .opencode/project_init.md): replace the two literals at notification-service.yml:39-40 with ${SMTP_USERNAME}/${SMTP_PASSWORD}, rotate, purge git history. While that file is open, add a mail.enabled-style flag - today outbound mail cannot be stopped without deleting code.",
+    "Move the hard-coded recipients (MailService.java:23, :39) into a list property: they are personal addresses in a public remote repo (PII) and make the service impossible to point at a test mailbox. A spring.notification.recipients list needs no new dependency.",
+    "Guard and bound the send: wrap javaMailSender.send() (:28, :61) with real handling + an explicit log, and uncomment spring.mail.properties.mail.smtp.{connectiontimeout,timeout,writetimeout} (notification-service.yml:47-49) - one unbounded SMTP read timeout stalls the only scheduler thread.",
+    "Decide Kafka explicitly: delete KafkaListenerService.java and the mirrored user-service NotificationService/MailServiceImpl pair, or wire spring-kafka on both ends. Leaving them is the worst option - the class names actively mislead architecture docs. Reintroducing Kafka requires the dependency-approval gate.",
+    "Delete or wire the dead path sendEmail() (:20-29, zero callers); either drop spring-boot-starter-test or add the first test - MailService is trivially testable with a mocked JavaMailSender (or GreenMail), no new dependency for the mock.",
+    "Small hardening: fix NotificaServicetionApplication (:9, safe rename) and either scope commons-lang3 to compile (pom.xml:37) or inline the 86 400 000 ms constant, so the build stops depending on a constant-inlining accident.",
+    "Classify honestly in generated docs: notification-service is a scheduled background job packaged as a web application - no controllers, no gateway route, no stable port - and must not be presented as part of the platform's REST surface."
+  ]
+}

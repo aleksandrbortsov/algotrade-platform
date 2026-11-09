@@ -1,0 +1,198 @@
+{
+  "schemaVersion": 1,
+  "component": "person-service",
+  "path": "person-service",
+  "kind": "backend",
+  "languages": ["Java"],
+  "coverage": "full",
+  "generatedAt": "2026-11-10T00:00:00Z",
+  "filesRead": 26,
+  "entryPoints": [
+    { "path": "person-service/src/main/java/pro/algotrade/personservice/PersonServiceApplication.java", "purpose": "@SpringBootApplication + main() (lines 6-11); the only app class. No @EnableDiscoveryClient/@EnableFeignClients/@EnableCaching/@EnableScheduling exists anywhere in the module - all platform behaviour is classpath-auto-configured" },
+    { "path": "person-service/src/main/java/pro/algotrade/personservice/PersonApplicationConfiguration.java", "purpose": "Only @Configuration: one @Bean ResourceBundleMessageSource, basename 'message/exception_message', useCodeAsDefaultMessage(true) (lines 10-16), consumed by the global exception handler" },
+    { "path": "person-service/src/main/resources/bootstrap.yml", "purpose": "Module's ONLY config resource: spring.application.name=person-service (:2) + spring.config.import optional:configserver:${CONFIG_SERVER:http://localhost:8888/} (:3). NO application.yml exists - every runtime property comes from config-service" },
+    { "path": "person-service/Dockerfile", "purpose": "4 lines: FROM openjdk:17 / EXPOSE 8080 / ADD target/person-service-1.0.jar / ENTRYPOINT java -jar /person-service-1.0.jar. No layering, no non-root USER, no HEALTHCHECK. EXPOSE 8080 is inert - server.port is 0 (config-service person-service.yml:1-2)" },
+    { "path": "person-service/mvnw", "purpose": "Per-module Maven Wrapper (mvnw, mvnw.cmd, .mvn/wrapper/maven-wrapper.properties -> Maven 3.8.6, wrapper 3.1.0; jar tracked). Contradicts development.md 'No Maven wrapper is committed'. mvnw.cmd:145 holds the module's only textual 'WebClient' hit (System.Net.WebClient, not app code)" }
+  ],
+  "folderStructure": {
+    "root": "person-service/src/main/java/pro/algotrade/personservice",
+    "layout": "16 Java files / 9 packages, flat package-per-technical-layer: root 2, controller 1, controller.dto 2 (DTOs nested UNDER controller), service 2 (iface+Impl together, no impl/), persistence 1 (named 'persistence', NOT entity/model/domain), persistence.repository 1, mapper 1, exception 3, exception.config 3 (handler + ErrorResponse + GlobalErrorCode)",
+    "resources": "src/test ABSENT; src/main/resources = bootstrap.yml + message/exception_message{,_rus}.properties; 26 tracked files total (git ls-files); .idea/** (9 files) and person-service.iml exist on disk but are UNTRACKED per .gitignore:16-20"
+  },
+  "architecture": {
+    "pattern": "Single-resource CRUD microservice: classic 4-layer Spring Boot service (controller -> service iface/impl -> Spring Data JPA repository -> MySQL) with a MapStruct mapper at the controller edge and one @ControllerAdvice. A leaf callee: no orchestration, messaging, security config, caching or scheduler.",
+    "evidence": [
+      "PersonController.java:14-19 - @RestController @RequestMapping(\"/persons\"), constructor-injected PersonService",
+      "PersonService.java:8-14 - the service interface returns PersonEntity, so the JPA type leaks across the service boundary",
+      "PersonServiceImpl.java:14-17 - @Service @RequiredArgsConstructor over PersonRepository",
+      "PersonRepository.java:8 - JpaRepository<PersonEntity, Long>, zero custom methods",
+      "Mapping is done in the controller (PersonController.java:24,27,33,42), not in the service",
+      "MAPPING DOMINANCE: MapStruct covers 2 of 3 mapping sites (PersonMapper.java:16-20) via a STATIC Mappers.getMapper INSTANCE (PersonMapper.java:14) - unmockable, and inconsistent with the module's constructor-injection style; the 3rd site is manual BeanUtils.copyProperties (PersonServiceImpl.java:35)",
+      "0 RestTemplate/WebClient/Feign in the sources -> pure callee (see answers.b)"
+    ]
+  },
+  "businessModules": [
+    { "name": "Person registry REST API (/persons CRUD)", "path": "person-service/src/main/java/pro/algotrade/personservice/controller", "purpose": "The entire public surface: create/read/update/delete one person profile - 4 handlers. The module's only business capability; no workflow, state machine or billing" },
+    { "name": "Person domain service (uuid minting, existence check, update copy)", "path": "person-service/src/main/java/pro/algotrade/personservice/service", "purpose": "PersonServiceImpl mints the server-side UUID on create (line 20), throws PersonEntityNotFoundRuntimeException for an unknown id (27, 42), copies request properties onto the managed entity on update (35)" },
+    { "name": "Person persistence (MySQL table t_persons)", "path": "person-service/src/main/java/pro/algotrade/personservice/persistence", "purpose": "PersonEntity (@Table t_persons) + PersonRepository - the module's only @Entity and only Spring Data repository" },
+    { "name": "Person error contract and message localisation", "path": "person-service/src/main/java/pro/algotrade/personservice/exception", "purpose": "(messageKey, Long code) exceptions, GlobalErrorCode 1000/1001, ErrorResponse{code,message}, PersonGlobalExceptionHandler resolving keys via ResourceBundleMessageSource against src/main/resources/message/exception_message{,_rus}.properties" },
+    { "name": "Person DTO <-> entity mapping (MapStruct)", "path": "person-service/src/main/java/pro/algotrade/personservice/mapper", "purpose": "@Mapping(target=\"uuid\", ignore=true) on dtoToEntity, @InheritInverseConfiguration on entityToDto (PersonMapper.java:16-20)" }
+  ],
+  "entities": [
+    {
+      "name": "PersonEntity",
+      "path": "person-service/src/main/java/pro/algotrade/personservice/persistence/PersonEntity.java",
+      "table": "t_persons",
+      "kind": "JPA @Entity (:8) @Table(name=\"t_persons\") (:9) Lombok @Data; no @Builder, no auditing columns, no @Column on any field",
+      "keyFields": [
+        "id: Long - @Id @GeneratedValue(IDENTITY) (:12-14); surrogate PK AND the id used in REST paths",
+        "uuid: String (:15) - set server-side to UUID.randomUUID().toString() (PersonServiceImpl.java:20); no unique constraint, never queried, never returned by PersonResponse",
+        "firstName / lastName / email: String (:16-18) - no length/nullable metadata; email has no uniqueness constraint and no @Email",
+        "birthday: java.util.Date (:19) - legacy type, not LocalDate",
+        "userId: Long (:20) - bare numeric reference to a platform user"
+      ],
+      "relations": [
+        "userId -> user-service: LOGICAL ONLY. PersonEntity.java:20 is a plain Long - no @ManyToOne/@OneToOne, no @JoinColumn, no @Table foreignKeys, no join table, and nothing verifies the target exists (PersonServiceImpl.java:19-23 persists it unchecked)",
+        "CIRCULAR id pair across services: person stores userId, while UserEntity.personId (its line 31, per .opencode/project/analysis/user-service.json) is also a plain column pointing back at Person. Neither side constrained; neither can detect the other's deletion",
+        "uuid is written but unreachable - entityToDto declares no uuid mapping and dtoToEntity ignores it (PersonMapper.java:16-20)",
+        "No collections, embeddables or inheritance. This is the module's ONLY @Entity"
+      ]
+    }
+  ],
+  "endpointGroups": [
+    {
+      "pathPattern": "/persons",
+      "methods": ["POST"],
+      "count": 1,
+      "version": "none - no /api or /vN prefix, no versioning dependency",
+      "auth": "NONE enforced in this module (no spring-boot-starter-security dependency, no @PreAuthorize, no filter chain). Externally the gateway route DOES apply the AuthFilter JWT filter - see crossComponentDependencies[gateway-service]",
+      "sourceFile": "person-service/src/main/java/pro/algotrade/personservice/controller/PersonController.java",
+      "handlers": "create(@RequestBody PersonRequest) lines 21-28 -> ResponseEntity.ok (200, NOT 201, no Location header)"
+    },
+    {
+      "pathPattern": "/persons/{id}",
+      "methods": ["GET", "PUT", "DELETE"],
+      "count": 3,
+      "version": "none",
+      "auth": "same as /persons. {id} is the raw numeric t_persons PK, so ids are enumerable; reaching the ephemeral port directly bypasses the AuthFilter entirely",
+      "sourceFile": "person-service/src/main/java/pro/algotrade/personservice/controller/PersonController.java",
+      "handlers": "getById 200 PersonResponse (30-36); update(@PathVariable id, @RequestBody PersonRequest) 200 PersonResponse (38-45); delete 200 with a bare Boolean that is ALWAYS true (47-52 + PersonServiceImpl.java:26-30) - a failed delete is indistinguishable from a successful one"
+    }
+  ],
+  "integrations": [
+    {
+      "name": "MySQL 8 - schema persons_schema",
+      "package": "com.mysql:mysql-connector-j (runtime scope, pom.xml:38-42); driver com.mysql.cj.jdbc.Driver",
+      "usedIn": ["config-service/src/main/resources/config/person-service.yml:44-48", "person-service/src/main/java/pro/algotrade/personservice/persistence/repository/PersonRepository.java:8", "person-service/.idea/dataSources.xml:9-10 (IntelliJ data source, same JDBC url; untracked)"],
+      "purpose": "Sole datastore, database-per-service (persons_schema @ localhost:3306), reached only through JpaRepository save/findById/delete",
+      "complianceHint": "Credentials committed in plain text at config-service/src/main/resources/config/person-service.yml:46-47 as spring.datasource.username / spring.datasource.password (values deliberately not reproduced). Schema owned by hibernate ddl-auto: update with no Flyway/Liquibase -> no reviewable migration history, and no way to express the unique constraints uuid/email need. HikariCP untuned."    },
+    {
+      "name": "HashiCorp Consul service discovery",
+      "package": "org.springframework.cloud:spring-cloud-starter-consul-discovery (pom.xml:44-47)",
+      "usedIn": ["config-service/src/main/resources/config/person-service.yml:35-42 - host localhost, port 8500, discovery.register-health-check false, discovery.instance-id"],
+      "purpose": "Registers service id 'person-service' so the reactive gateway can resolve it despite server.port: 0",
+      "complianceHint": "register-health-check: false -> Consul never health-checks the instance, so a dead instance stays in the registry and keeps receiving traffic. Host/port hardcoded to localhost with no env override (unlike CONFIG_SERVER/ADMIN_SERVER)."
+    },
+    {
+      "name": "Spring Cloud Config Server (config-service)",
+      "package": "org.springframework.cloud:spring-cloud-starter-bootstrap + spring-cloud-starter-config (pom.xml:23-31)",
+      "usedIn": ["person-service/src/main/resources/bootstrap.yml:3"],
+      "purpose": "Supplies the entire runtime configuration at bootstrap; this module ships no application.yml at all",
+      "complianceHint": "The import is 'optional:' so the service boots with an unreachable config-service and then dies on DataSource creation with a misleading error. Because the served YAML lives in this repo, rotating the datasource password requires a commit."
+    },
+    {
+      "name": "Spring Boot Admin client + Actuator",
+      "package": "de.codecentric:spring-boot-admin-starter-client ${spring-boot-admin.version} = 2.7.7 (pom.xml:49-53; parent pom.xml:37)",
+      "usedIn": ["config-service/src/main/resources/config/person-service.yml:21-25 - spring.boot.admin.client.url ${ADMIN_SERVER:http://localhost:5555/}", "config-service/src/main/resources/config/person-service.yml:16-19 - management.endpoints.web.exposure.include \"*\" + health.show-details always"],
+      "purpose": "Registers the instance with admin-service (5555) and exposes the actuator endpoints the Admin UI reads",
+      "complianceHint": "EVERY actuator endpoint is web-exposed on a plain-HTTP ephemeral port - /env and /heapdump included - with no security dependency to protect them; /env would echo the datasource password named above."
+    },
+    {
+      "name": "SMTP / mail",
+      "package": "not found",
+      "usedIn": [],
+      "purpose": "not found - no spring-boot-starter-mail here; 'email' is only a PersonEntity column (PersonEntity.java:18), never a transport",
+      "complianceHint": "PII is logged at INFO on every read and write: PersonController.java:23,34,43 log whole PersonRequest/PersonResponse (firstName, lastName, email, birthday) via the Lombok toString into logs/person-service.log (person-service.yml:5-8)."
+    }
+  ],
+  "dependencies": [
+    { "name": "spring-boot-starter-web", "version": "2.7.5 (managed by spring-boot-starter-parent)", "category": "web - IMPORTED IN CODE: @RestController/@RequestMapping/@GetMapping/@PutMapping/@DeleteMapping/@PathVariable/@RequestBody + ResponseEntity (PersonController.java:6-7); @ControllerAdvice/@ExceptionHandler/ResponseEntityExceptionHandler (PersonGlobalExceptionHandler.java:7-9)" },
+    { "name": "spring-boot-starter-data-jpa", "version": "2.7.5 (managed)", "category": "persistence - IMPORTED IN CODE: javax.persistence.* (PersonEntity.java:5); JpaRepository (PersonRepository.java:3)" },
+    { "name": "mapstruct + mapstruct-processor (annotation processor path)", "version": "1.5.3.Final (parent pom.xml:35; used at pom.xml:58,111)", "category": "mapping - IMPORTED IN CODE: Mapper/@Mapping/@InheritInverseConfiguration/Mappers (PersonMapper.java:3-6,11-14)" },
+    { "name": "lombok (provided + processor path pom.xml:102-107)", "version": "1.18.24 (parent pom.xml:34)", "category": "boilerplate - IMPORTED IN CODE, pervasive: @Data x4 (PersonEntity, PersonRequest, PersonResponse, ErrorResponse), @RequiredArgsConstructor x3 (PersonController:4, PersonServiceImpl:4, PersonGlobalExceptionHandler:3), @Slf4j x2, @Getter, @Builder, @NoArgsConstructor" },
+    { "name": "spring-cloud-starter-bootstrap", "version": "2021.0.5 (spring-cloud-dependencies BOM, pom.xml:75-85)", "category": "config - NOT imported; declarative, its only job is making bootstrap.yml be read" },
+    { "name": "spring-cloud-starter-config", "version": "2021.0.5 (BOM)", "category": "config - NOT imported; declarative via spring.config.import (bootstrap.yml:3)" },
+    { "name": "com.mysql:mysql-connector-j", "version": "Boot-BOM managed, scope runtime", "category": "jdbc driver - never imported; named only as spring.datasource.driver-class-name (person-service.yml:48)" },
+    { "name": "spring-cloud-starter-consul-discovery", "version": "2021.0.5 (BOM)", "category": "discovery - no annotation, no import; auto-configured, set at person-service.yml:35-42" },
+    { "name": "de.codecentric:spring-boot-admin-starter-client", "version": "2.7.7", "category": "observability - no import; auto-configured, set at person-service.yml:21-25" },
+    { "name": "spring-boot-starter-test", "version": "2.7.5 (managed), scope test (pom.xml:67-71)", "category": "test - DECLARED BUT ENTIRELY UNUSED: src/test does not exist, 0 test classes among 26 tracked files" },
+    { "name": "ABSENT: spring-boot-starter-validation, spring-boot-starter-security, spring-cloud-starter-openfeign, spring-boot-starter-webflux, spring-boot-starter-mail", "version": "not found", "category": "absent, each load-bearing: no @Valid support, no local auth, no Feign, no WebClient on the classpath, no mail" },
+    { "name": "build: spring-boot-maven-plugin + maven-compiler-plugin 3.8.1", "version": "compiler 3.8.1 pinned (pom.xml:95-115)", "category": "DRIFT: <source>10</source><target>10</target> (pom.xml:100-101) vs parent java.version 17 (pom.xml:31) and openjdk:17 image (Dockerfile:1). No surefire/failsafe/jacoco/enforcer" }
+  ],
+  "persistence": {
+    "driver": "com.mysql.cj.jdbc.Driver (config-service/src/main/resources/config/person-service.yml:48); HikariCP defaults, untuned",
+    "dialect": "not configured - no spring.jpa.database-platform / hibernate.dialect in the module or in the delivered document; Hibernate infers the MySQL 8 dialect from JDBC metadata at runtime",
+    "ddlAuto": "update - CONFIRMED at config-service/src/main/resources/config/person-service.yml:28-29, with show-sql: true (:30) and org.hibernate.SQL: debug + type.descriptor.sql: trace (:10-14). The module's own src/main/resources carries ONLY bootstrap.yml, so these values genuinely originate in config-service as the brief suspected",
+    "schema": "persons_schema @ jdbc:mysql://localhost:3306 (person-service.yml:45). One Hibernate-generated table t_persons; no .sql file, no Flyway/Liquibase, no @Column overrides -> physical names follow Spring's implicit strategy (firstName -> first_name)",
+    "repositories": ["person-service/src/main/java/pro/algotrade/personservice/persistence/repository/PersonRepository.java - @Repository extends JpaRepository<PersonEntity, Long>. ZERO custom methods: no derived query, no @Query, no Pageable/Sort, no Specification, no custom fragment. Every lookup in the service is findById"],
+    "transactions": "no @Transactional on any class or method (0 occurrences module-wide). Each JpaRepository call is its own transaction, so update (findById then save, PersonServiceImpl.java:33-38) and delete (findById then delete, :26-30) are each two transactions with no atomic unit of work"
+  },
+  "patterns": [
+    { "name": "Constructor injection via Lombok @RequiredArgsConstructor over final fields; zero @Autowired field injection", "evidence": ["PersonController.java:17-19", "PersonServiceImpl.java:15-17", "PersonGlobalExceptionHandler.java:15-19"] },
+    { "name": "MapStruct DTO<->entity mapping through a static INSTANCE, plus one manual BeanUtils.copyProperties on the update path", "evidence": ["PersonMapper.java:14", "PersonController.java:24,27,33,42", "PersonServiceImpl.java:35 copyProperties(personRequest, personEntity, \"id\", \"uuid\")"] },
+    { "name": "Service layer returns JPA entities; DTO conversion lives in the controller", "evidence": ["PersonService.java:8-14", "PersonServiceImpl.java:19-43"] },
+    { "name": "Unchecked business exception carrying (i18n message key, stable Long code), translated once in a @ControllerAdvice through a ResourceBundleMessageSource", "evidence": ["PersonServiceGlobalRuntimeException.java:6-12", "PersonEntityNotFoundRuntimeException.java:7-9", "GlobalErrorCode.java:7-8", "PersonGlobalExceptionHandler.java:21-32", "PersonApplicationConfiguration.java:10-16", "message/exception_message.properties:1-2", "message/exception_message_rus.properties:1-2"] },
+    { "name": "TWO error response shapes, ONE status code: typed errors return ErrorResponse{code,message}, everything else returns a bare string built by concatenating the exception toString - and both answer HTTP 400, so a missing person is indistinguishable from a malformed body", "evidence": ["ErrorResponse.java:8-10", "PersonGlobalExceptionHandler.java:25-31 badRequest+ErrorResponse", "PersonGlobalExceptionHandler.java:34-39 badRequest + 'Exception occurred inside Person Service' + e"] },
+    { "name": "No validation at any layer: no @Valid/@NotNull/@NotBlank/@Email and no validation starter; arbitrary POST bodies are persisted, including a userId that is never checked to exist", "evidence": ["pom.xml:16-73 (no validation starter)", "PersonController.java:22,39-40", "PersonRequest.java:8-14", "PersonServiceImpl.java:19-23"] },
+    { "name": "Lombok @Slf4j INFO logging of whole DTOs (PII) on every controller call", "evidence": ["PersonController.java:23,34,43,50"] },
+    { "name": "Configuration externalised wholesale to config-service; only hostnames are env-overridable (CONFIG_SERVER, ADMIN_SERVER)", "evidence": ["bootstrap.yml:2-3", "person-service.yml:25,45-47 (property names only)"] },
+    { "name": "Dead code: PersonAlreadyRegisteredException and GlobalErrorCode.ERROR_USER_ALREADY_REGISTERED (1001) are declared and localised but thrown nowhere (verified by grep over src)", "evidence": ["exception/PersonAlreadyRegisteredException.java:5-13", "exception/config/GlobalErrorCode.java:8", "message/exception_message.properties:1"] },
+    { "name": "Field-set duplication INSIDE the module: {firstName,lastName,email,birthday,userId} repeated verbatim 3x", "evidence": ["PersonEntity.java:16-20", "PersonRequest.java:9-13", "PersonResponse.java:9-14"] }
+  ],
+  "codeQuality": {
+    "testFiles": "not found - no src/test directory exists; git ls-files person-service returns 26 files, none a test; spring-boot-starter-test declared (pom.xml:67-71) and unused",
+    "testClasses": 0,
+    "lintFormatConfig": "not found - no checkstyle/pmd/spotbugs/editorconfig/sonar file under person-service/; per .opencode/rules/development.md those tools exist only in the IntelliJ project, so nothing is enforced in the build",
+    "todoFixmeCount": 0,
+    "ci": "not found - no pipeline file in the module (and none in the repository)"
+  },
+  "apiSpecs": {
+    "openapiSwagger": "not found - no springdoc/swagger dependency, no @OpenAPIDefinition, no openapi.yaml/json under person-service/",
+    "postmanBrunoHttp": "not found - no .http, .bru or collection file",
+    "documentation": "not found - the module contains NO .md file at all, not even a README; only pom.xml:14 (<description>Service to manage AlgoTrade Platform Persons</description>) and the 4 handler signatures hint at the contract"
+  },
+  "answers": {
+    "a_personRegistryAndWhatIsPerson": "Functionally yes, but very thin. pom.xml:14 'Service to manage AlgoTrade Platform Persons'. PersonEntity carries ONLY demographic identity - id, a server-minted uuid, firstName, lastName, email, birthday + a userId pointer (PersonEntity.java:12-20). No trading or customer-lifecycle state at all (no account, balance, entitlement, tariff, KYC, address, document) and no relation to account-service. So Person = the people/customer profile record belonging to a platform user, nothing more. The author treats person and user as near-synonyms: 'exception.person.not.found' renders in Russian as 'the USER is not registered' (exception_message_rus.properties:2) and the duplicate constant is ERROR_USER_ALREADY_REGISTERED (GlobalErrorCode.java:8).",
+    "b_outboundCallsAndClientType": "NONE - zero outbound calls. 0 occurrences of RestTemplate, WebClient, FeignClient, @EnableFeignClients, ExchangeStrategies or HttpClient in the Java sources; the module's only 'WebClient' text is System.Net.WebClient in the Maven wrapper script mvnw.cmd:145, not application code. The pom confirms intent: no spring-cloud-starter-openfeign and no spring-boot-starter-webflux, so WebClient could not even compile. Consequence: PersonRequest.userId is persisted unverified (PersonServiceImpl.java:19-23). person-service is a pure callee. For orientation only, cited from the sibling ARTIFACT .opencode/project/analysis/user-service.json (sibling source not read): the platform's inter-service client IS RestTemplate, and user-service is the caller - GET http://localhost:3535/persons/{personId} (UserController.java:25,104).",
+    "c_consulRegistrationAndRandomPort": "Annotation-free auto-registration: spring-cloud-starter-consul-discovery on the classpath (pom.xml:44-47) + the bootstrap context re-enabled (pom.xml:23-31, bootstrap.yml) -> Spring Cloud Consul auto-registers the app under service id 'person-service' (spring.application.name, bootstrap.yml:2) at spring.cloud.consul.host localhost:8500 with instance-id '${spring.cloud.client.hostname}_${spring.application.name}:${random.value}' and register-health-check: false (config-service person-service.yml:35-42). No @EnableDiscoveryClient is needed on Boot 2.x and none exists. server.port: 0 (person-service.yml:1-2) lets the OS assign an ephemeral port every boot; the fixed address is replaced by Consul name resolution at the gateway, and ${random.value} in the instance-id is what lets several instances share a host without registry collisions. Consequences: Dockerfile EXPOSE 8080 is meaningless, and no document, script or test may hardcode a person-service port.",
+    "d_consumerAndDataDuplication": "Nothing inside person-service consumes or replicates user-service data - no client, listener, cache or sync, and no inbound integration point beyond the 4 handlers. Provable in scope: {firstName,lastName,email,birthday,userId} is repeated verbatim 3x (PersonEntity.java:16-20, PersonRequest.java:9-13, PersonResponse.java:9-14) while the entity stores its OWN email and also points at another aggregate via userId. POSSIBLE DATA-DUPLICATION FINDING, corroborated by the pre-existing artifact .opencode/project/analysis/user-service.json (sibling source NOT read): user-service holds UserEntity.personId as a plain column AND hand-maintains controller/dto/PersonDto.java mirroring (id, uuid, firstName, lastName, email, birthday) embedded in UserResponse.person - the demographic block is therefore stored twice platform-wide, person-service the write side, user-service an unversioned hand-copied read model. Two drifts visible from this side: (i) PersonResponse does NOT expose uuid (PersonResponse.java:9-14) though the sibling mirror is recorded as containing it, and Jackson NON_NULL (person-service.yml:32-33) omits it; (ii) PersonResponse DOES expose userId, which the mirror is not recorded as having. The reference direction is also inverted (person.userId vs user.personId) - a circular pair of unconstrained id columns.",
+    "e_followUp": "Phase 6 question: is uuid the external identifier? It is minted (PersonServiceImpl.java:20), mapped away (PersonMapper.java:16), never unique-constrained, never queried - while a sibling is documented as expecting exactly that field."
+  },
+  "crossComponentDependencies": [
+    { "targetPath": "config-service", "via": "Spring Cloud Config over HTTP at bootstrap - spring.config.import optional:configserver:${CONFIG_SERVER:http://localhost:8888/} (bootstrap.yml:3). No compile-time dependency, but the module ships no application.yml, so it is runtime-dependent" },
+    { "targetPath": "admin-service", "via": "spring-boot-admin client registration to ${ADMIN_SERVER:http://localhost:5555/} (person-service.yml:22-25) - read under this brief's explicit permission for the one config file" },
+    { "targetPath": "user-service", "via": "LOGICAL id references in BOTH directions, no call in either: PersonEntity.userId (PersonEntity.java:20) / PersonRequest.userId (:13) here; UserEntity.personId + a hand-copied PersonDto there (per .opencode/project/analysis/user-service.json). No HTTP client, no FK, no shared artifact or Feign contract" },
+    { "targetPath": "gateway-service", "via": "INBOUND only - person-service publishes no client; it is reached as lb://person-service under Path=/persons/** with the AuthFilter, route id 'person-service-in' (recorded in .opencode/project/analysis/config-service.json -> gateway-service.yml:50-53; the gateway was not read). Consul registration (person-service.yml:35-42) is what makes that resolution possible" },
+    { "targetPath": "external:mysql://localhost:3306/persons_schema", "via": "JDBC via mysql-connector-j (person-service.yml:45,48); nothing in the repository starts it - no compose file exists" }
+  ],
+  "recommendations": [
+    "Add spring-boot-starter-validation and constrain PersonRequest (@NotBlank firstName/lastName, @Email email, @NotNull birthday) with @Valid at PersonController.java:22,:39 - arbitrary input, including an unverified userId, is persisted today.",
+    "Unify the error contract: PersonGlobalExceptionHandler.java:34-39 returns a bare string for unexpected errors while typed errors return ErrorResponse{code,message}, and both answer 400. Use ErrorResponse everywhere; 404 for ERROR_ENTITY_NOT_FOUND.",
+    "Adopt Flyway/Liquibase before t_persons holds real customer data - ddl-auto: update (person-service.yml:29) cannot express the unique constraints uuid/email need and there is no schema history.",
+    "Settle the person/user boundary: stop persisting the same demographic block in two services, resolve the circular personId <-> userId pair, decide whether userId must be validated.",
+    "Decide the uuid contract - expose it + unique constraint + lookup endpoint, or delete it; today it is written, hidden and unused while a sibling expects it.",
+    "Delete or wire up PersonAlreadyRegisteredException / ERROR_USER_ALREADY_REGISTERED (1001) - dead code implying an unimplemented duplicate-email rule.",
+    "Remove <source>10</source><target>10</target> (person-service/pom.xml:100-101) so the module inherits java.version 17 (pom.xml:31) like the openjdk:17 image.",
+    "Add @Transactional (or one bulk update) to PersonServiceImpl.update/delete - each is currently two transactions.",
+    "Stop logging whole person DTOs at INFO (PersonController.java:23,34,43) - PII lands in logs/person-service.log.",
+    "Rotate and externalise the datasource credentials (person-service.yml:46-47, by property name) and narrow management.endpoints.web.exposure.include (person-service.yml:18) - /env echoes them. Set register-health-check: true so Consul can evict a dead instance.",
+    "Add the module's first tests - @WebMvcTest of PersonController, @DataJpaTest of PersonRepository: 4 endpoints, 1 repository, 0 tests, so all verification today is manual and runtime-only."
+  ],
+  "gaps": [
+    "user-service source was NOT read (out of scope). answers.d rests on person-service source PLUS the pre-existing artifact .opencode/project/analysis/user-service.json; a direct read of UserEntity.java / PersonDto.java would confirm the duplication and the uuid/userId contract drift.",
+    "The gateway route table and AuthFilter claim requirements were not read (gateway-service out of scope). 'auth: none' in endpointGroups describes only what this module enforces, not what an external client faces.",
+    "The effective Hibernate dialect and the actual generated DDL of t_persons were not inspected - no live MySQL, no SQL dump; the committed .idea/dataSources schema cache covers only MySQL system schemas, not persons_schema.",
+    "Whether the deprecated logging.file.max-size / max-history keys (person-service.yml:7-8) really cap the log was not verified - no instance started; the config-service report raises the same doubt.",
+    "No test or CI convention could be inferred from this module: spring-boot-starter-test is declared with zero tests, and no pipeline file exists in the module."
+  ]
+}

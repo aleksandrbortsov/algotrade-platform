@@ -1,0 +1,491 @@
+{
+  "version": "5.0.0",
+  "initializationStatus": "active",
+  "templateName": "NC AI Workplace",
+  "lastUpdate": "2026-11-09T20:08:35Z",
+  "templateSource": {
+    "url": "https://{insert correct url}.git",
+    "branch": "OpenCodeWP"
+  },
+  "apmVersion": "0.35.0",
+  "apmVersionExpected": "0.28.0",
+  "apmVersionCheckedAt": "2026-11-09T18:46:25Z",
+  "description": "Core template version tracker - DO NOT MODIFY MANUALLY. v5.0.0 - OpenCode line: port of the Cursor-line 4.8.0 template to OpenCode 1.18.27 (native skills, agents with permission blocks, a plugin instead of the stop hook) and the APM 0.28.0 opencode target (package skills in .agents/skills/, no hooks). Release notes live in CHANGELOG.md; this field is a pointer, not a changelog.",
+  "coreFiles": {
+    ".opencode/rules/orchestrator.md": {
+      "hash": "b48db7407aaab885e6935847b6e560268ba0a3a5ba0b2f3a5997a7fa5bae9016",
+      "lastModified": "2026-11-09T20:08:35Z"
+    },
+    ".opencode/rules/development.md": {
+      "hash": "c46705cb34517e4b10918f5c791daad9f2a87b650a807d7c7b9928c02a270e9d",
+      "lastModified": "2026-11-09T20:08:35Z"
+    },
+    ".opencode/rules/taskmaster/dev_workflow.md": {
+      "hash": "78858c21f40e56aaeebc6e6e30e66579f15277ca550b0ae35c8c306ec0ff04a5",
+      "lastModified": "2026-11-09T20:08:35Z"
+    },
+    ".opencode/rules/taskmaster/taskmaster.md": {
+      "hash": "12944474e85303dfb835b9733db4405c234a14d43689f6871fc97dbe8d76994a",
+      "lastModified": "2026-11-09T20:08:35Z"
+    },
+    ".opencode/agents/initializer.md": {
+      "hash": "e77d43ec2e6a1cdd0c32d01369012e3d702ed3c2b41ca32c06a1170d1eb2b0a6",
+      "lastModified": "2026-11-09T20:08:35Z"
+    },
+    ".opencode/agents/documentation-sync.md": {
+      "hash": "15bfec1290eb33d6ec7a3d795584585c1771d8aed87752858b973e803e25af80",
+      "lastModified": "2026-11-09T20:08:35Z"
+    },
+    ".opencode/agents/infra-specialist.md": {
+      "hash": "e3121ea2cd6de20a0245ede85db5adba1771243e52437da62fd5db514d91c25e",
+      "lastModified": "2026-11-09T20:08:35Z"
+    },
+    ".opencode/agents/project-updater.md": {
+      "hash": "252ca2f09aebdc7b36da03c6a6636c53a14ac4467871b32f6de137bfcfede35c",
+      "lastModified": "2026-11-09T20:08:35Z"
+    },
+    ".opencode/agents/codebase-analyzer.md": {
+      "hash": "a2a74b76b2561d9b43c51e64c53a7f22a28e7264b5e1f8f7991984ecb7f5b9b1",
+      "lastModified": "2026-11-09T20:08:35Z"
+    },
+    ".opencode/skills/project-initialization/SKILL.md": {
+      "hash": "bcb69efb62be8f2bba6a3990400215b4ab9c81ba3e795a8fb4e85f920d147e58",
+      "lastModified": "2026-11-09T20:08:35Z"
+    },
+    ".opencode/skills/project-initialization/references/agents-template.md": {
+      "hash": "5f85af6ea8194dbd5f0c1ac182e7b7fe0012c4e2bf65b2450521be74c2aa7373",
+      "lastModified": "2026-11-09T20:08:35Z"
+    },
+    ".opencode/skills/project-initialization/references/role-commands-template.md": {
+      "hash": "58b200d27c805635c66d3dc57c6f1eda8c74d7db6eb0608910d2dfa5694359d5",
+      "lastModified": "2026-11-09T20:08:35Z"
+    },
+    ".opencode/skills/project-initialization/references/user-roles-mcp.md": {
+      "hash": "0fea741189cd160aa4b361a003f73f4a2152a3f539911ced1939eefc969cf36c",
+      "lastModified": "2026-11-09T20:08:35Z"
+    },
+    ".opencode/skills/project-initialization/references/configuration-updates.md": {
+      "hash": "4fad12b0e31eb272ff8bdce62e5566d5d7ca7d58d60b661cdc0c1c03ade7894f",
+      "lastModified": "2026-11-09T20:08:35Z"
+    },
+    ".opencode/skills/project-initialization/references/quick-init.md": {
+      "hash": "d0047b6631d34896edd79a146c387ca8afeb6e0b7d2e3539c8f30f059e657eac",
+      "lastModified": "2026-11-09T20:08:35Z"
+    },
+    ".opencode/skills/project-initialization/references/environment-setup.md": {
+      "hash": "bfea9c5b481f135ebb3fb39bf28da9f2eed7fc624b95652552759f561a941732",
+      "lastModified": "2026-11-09T20:08:35Z"
+    },
+    ".opencode/skills/project-initialization/references/documentation.md": {
+      "hash": "abc06a1971e7593be2eb905ed5e96ea991447cc38ee1612d22ec8a2f01d419b7",
+      "lastModified": "2026-11-09T20:08:35Z"
+    },
+    ".opencode/skills/project-initialization/references/mode-detection.md": {
+      "hash": "98ac73c1c4f0d806c8212c35ff0ae39a15b96faa21a62229bfb0cde11b5ce899",
+      "lastModified": "2026-11-09T20:08:35Z"
+    },
+    ".opencode/skills/project-initialization/references/metadata-collection.md": {
+      "hash": "3579f0b6b9d88cf69fca4054915baead6b59e7ba54e0cd4420bbb19f153f771d",
+      "lastModified": "2026-11-09T20:08:35Z"
+    },
+    ".opencode/skills/project-initialization/references/stack-configuration.md": {
+      "hash": "3dc27b732db76f8a79782e235a5de96912b5f4c7fcfbe1b7f56682cb56a8798b",
+      "lastModified": "2026-11-09T20:08:35Z"
+    },
+    ".opencode/skills/project-initialization/references/codebase-analysis.md": {
+      "hash": "70e7be3e31436ff56e28f1e25d2cbe289f01abee9797cb096c3b8ef7c4890e26",
+      "lastModified": "2026-11-09T20:08:35Z"
+    },
+    ".opencode/skills/project-initialization/references/subagent-contract.md": {
+      "hash": "09b67febceda5f4f590fe4485269b4a7c28c76cc48ae0a7f261652eb3de4495b",
+      "lastModified": "2026-11-09T20:08:35Z"
+    },
+    ".opencode/skills/project-initialization/references/workplace-docs.md": {
+      "hash": "951877ab43e89bef4d63fcfb986ef1bbabcad8c9fbb6711e87b88fcd950a01ca",
+      "lastModified": "2026-11-09T20:08:35Z"
+    },
+    ".opencode/skills/project-initialization/references/phase-4/ba-mode.md": {
+      "hash": "c948c49cd6c792e8a14938ee25b4bf60fd1f4c5271f821cc4d04192cafd1533d",
+      "lastModified": "2026-11-09T20:08:35Z"
+    },
+    ".opencode/skills/project-initialization/references/phase-4/dispatch.md": {
+      "hash": "08581d54e01d954564daa38c4444e9542e80cf8fda72ef65fe79a9f9f0df8cc3",
+      "lastModified": "2026-11-09T20:08:35Z"
+    },
+    ".opencode/skills/project-initialization/references/phase-4/merge-and-persist.md": {
+      "hash": "adb7d3236de954c03c2d013ec6cc7ae75f94c60a8427aa0b03d37aa25f6e548a",
+      "lastModified": "2026-11-09T20:08:35Z"
+    },
+    ".opencode/skills/project-initialization/references/phase-4/prompts.md": {
+      "hash": "83cc0b66dedde895d79ad5594c613b66f256ef3b65b661cc7b2e0178a023d04a",
+      "lastModified": "2026-11-09T20:08:35Z"
+    },
+    ".opencode/skills/project-initialization/references/phase-4/reflection-and-gaps.md": {
+      "hash": "2e57ae93fba5553ea20b40e226a59fdb356e97b05dd0152d1fadef8fff05060b",
+      "lastModified": "2026-11-09T20:08:35Z"
+    },
+    ".opencode/skills/project-initialization/references/phase-5/ba-mode.md": {
+      "hash": "585ba616d24a24ee30e5b9ee897fa354bad741659880257161203d210ddf8706",
+      "lastModified": "2026-11-09T20:08:35Z"
+    },
+    ".opencode/skills/project-initialization/references/phase-5/overview.md": {
+      "hash": "74c6ea9902b1bf2a01882342539b101dbb5920dde36f0e092787183f98b2183e",
+      "lastModified": "2026-11-09T20:08:35Z"
+    },
+    ".opencode/skills/project-initialization/references/phase-5/part-1-5-api-docs.md": {
+      "hash": "180965b8d2b126ae108e88624bfe57c25975266dfc7adfe180818520dafc6e97",
+      "lastModified": "2026-11-09T20:08:35Z"
+    },
+    ".opencode/skills/project-initialization/references/phase-5/part-1-components.md": {
+      "hash": "e2c100017da01667d336a5f452451a69cfedb683f94f9e3642d49a84179faefb",
+      "lastModified": "2026-11-09T20:08:35Z"
+    },
+    ".opencode/skills/project-initialization/references/phase-5/part-2-architecture.md": {
+      "hash": "85f94f7340c3078e4afe3c3d76f7ad994b7f4a990d460f7d0dd96da5bbf4509f",
+      "lastModified": "2026-11-09T20:08:35Z"
+    },
+    ".opencode/skills/project-initialization/references/phase-5/part-3-performance.md": {
+      "hash": "0752dca7fe9a73bd1ac1676ec0ce6acc49a212267ce8972c7650a85863701e29",
+      "lastModified": "2026-11-09T20:08:35Z"
+    },
+    ".opencode/skills/project-initialization/references/phase-5/part-4-general.md": {
+      "hash": "ec11cce86c3406d5caf86c7c7e1d96178936507d58fb578bf04189b9434ae7bf",
+      "lastModified": "2026-11-09T20:08:35Z"
+    },
+    ".opencode/skills/project-initialization/references/phase-5/part-5-security.md": {
+      "hash": "f01e67cd37d00d85df73d7c0e5959ef5f9a54317b89da5f36a989177cde577e5",
+      "lastModified": "2026-11-09T20:08:35Z"
+    },
+    ".opencode/skills/project-initialization/references/phase-6/api-analysis.md": {
+      "hash": "7cf35f5f974e5c34e3243ce38dd3805579e9eea47e7e6e3b8a95d7a94172ce76",
+      "lastModified": "2026-11-09T20:08:35Z"
+    },
+    ".opencode/skills/project-initialization/references/phase-6/overview.md": {
+      "hash": "e9b4007aba179ad83f867849e92a8ac218e55bbb72daacc6651e060f5ab26001",
+      "lastModified": "2026-11-09T20:08:35Z"
+    },
+    ".opencode/skills/project-initialization/references/phase-6/part-1-development-mdc.md": {
+      "hash": "ad5b8e9abd3c00dea9b0e22b3d990a46664ebfd576ac63016e0095809db4917a",
+      "lastModified": "2026-11-09T20:08:35Z"
+    },
+    ".opencode/skills/project-initialization/references/phase-6/part-2-domain-skills.md": {
+      "hash": "aa7255a7131b4c5cf51a193954488ce79d637ecae70b36c586dfa98f2a7b7428",
+      "lastModified": "2026-11-09T20:08:35Z"
+    },
+    ".opencode/skills/project-initialization/references/phase-6/part-3-5-verification.md": {
+      "hash": "081d4cd46e6f6e72b4e00961983e721689182f920be9caa1587faa0e23db3005",
+      "lastModified": "2026-11-09T20:08:35Z"
+    },
+    ".opencode/skills/project-initialization/references/phase-6/part-3-guidelines.md": {
+      "hash": "2c45948fcd3a2411a964ebb2345c36c5d0d237563a1659061fa1e7d998d45b55",
+      "lastModified": "2026-11-09T20:08:35Z"
+    },
+    ".opencode/skills/project-initialization/references/requirements.md": {
+      "hash": "c2c9960ed4b84eec1c395a70258dd9d745facd0ea59060a9f48b7335f7f441e7",
+      "lastModified": "2026-11-09T20:08:35Z"
+    },
+    ".opencode/skills/project-initialization/scripts/compute-hashes.ps1": {
+      "hash": "b703844950f8f782e0133ddec9570b199d807ee1d05bb8277eca1bf090c9681f",
+      "lastModified": "2026-11-09T20:08:35Z"
+    },
+    ".opencode/skills/project-initialization/scripts/compute-hashes.sh": {
+      "hash": "aadf6528ff44a3729a6ed5e6defe57a8a0b9d35df1b0cb55a420aea72447e60c",
+      "lastModified": "2026-11-09T20:08:35Z"
+    },
+    ".opencode/skills/project-initialization/scripts/validate-doc-links.js": {
+      "hash": "35d0a0b1b81d07ee1da174e99f7c0e919bf929ebde78db1ff6d836322eb8328d",
+      "lastModified": "2026-11-09T20:08:35Z"
+    },
+    ".opencode/skills/project-initialization/scripts/verify-apm-activation.ps1": {
+      "hash": "eb73c2b861dbe0302c84a5ec932f36296474a0bb912880c62379b56b42118674",
+      "lastModified": "2026-11-09T20:08:35Z"
+    },
+    ".opencode/skills/project-initialization/scripts/validate-apm-install.ps1": {
+      "hash": "265be6fe0f42243d6274b489d9283b8bcd63d7758c5b9f4b4614dc262c78fdb1",
+      "lastModified": "2026-11-09T20:08:35Z"
+    },
+    ".opencode/skills/project-initialization/scripts/validate-analysis.js": {
+      "hash": "e12c8c5cc81eb1a7006b063aec82a70d56942d8d7f243af942a2fe3a0c98a455",
+      "lastModified": "2026-11-09T20:08:35Z"
+    },
+    ".opencode/skills/project-initialization/assets/analysis-report.schema.json": {
+      "hash": "95c46332881fef0b32da98e46ff30cb79dd5200dc3cd084a230050387bdc42bd",
+      "lastModified": "2026-11-09T20:08:35Z"
+    },
+    ".opencode/skills/project-initialization/scripts/check-guidelines-specificity.js": {
+      "hash": "acdf30a037787c7b6afcfd7a88a9238dd80721ec55f7a0f90d2842ef46e131c3",
+      "lastModified": "2026-11-09T20:08:35Z"
+    },
+    ".opencode/skills/project-initialization/scripts/fetch-workplace-doc.js": {
+      "hash": "16e81cbc67f7437105b30828770d5b9df5abd8eb1e4c87d6d66f9dd6c096d9e0",
+      "lastModified": "2026-11-09T20:08:35Z"
+    },
+    ".opencode/hooks/docs-sync-check.js": {
+      "hash": "ef74b2abe38f5be7f268cb223e2df52c7d52ae1c37e30ffa2d5f13c5d5cc9705",
+      "lastModified": "2026-11-09T20:08:35Z"
+    },
+    ".opencode/skills/documentation-management/SKILL.md": {
+      "hash": "253af9e54b746d00331b97c1cf7f96ae23e98ff371f881d3b19b05357788387d",
+      "lastModified": "2026-11-09T20:08:35Z"
+    },
+    ".opencode/skills/documentation-management/references/registry.md": {
+      "hash": "e78edcd28a713ef1e187ad944ef23dc6a7717c6bf41184544f3e77eb469a5d87",
+      "lastModified": "2026-11-09T20:08:35Z"
+    },
+    ".opencode/skills/documentation-management/references/sync-workflow.md": {
+      "hash": "040ab3c4d4e83d7614369850abd4b8dcc9c9de6fc25645c723d908ebbf2b1f0a",
+      "lastModified": "2026-11-09T20:08:35Z"
+    },
+    ".opencode/skills/documentation-management/references/markdown-standards.md": {
+      "hash": "6b392353af0be197d0a969659d996db0e61063f2e905c1e342fc6105d8bd9d07",
+      "lastModified": "2026-11-09T20:08:35Z"
+    },
+    ".opencode/skills/codebase-analysis/SKILL.md": {
+      "hash": "3dcc6c76d2904dd0351e617feeb74766d0b811a8904dcf7ffed4ca07d2154b4a",
+      "lastModified": "2026-11-09T20:08:35Z"
+    },
+    ".opencode/skills/code-quality-standards/SKILL.md": {
+      "hash": "51954b471e492ea06b3b642555c8594a2d8af311f65e2e202d68a1adc0b4c756",
+      "lastModified": "2026-11-09T20:08:35Z"
+    },
+    ".opencode/skills/infrastructure-context/SKILL.md": {
+      "hash": "070a112c3e123170bbcdafda01ff4fe2afc3d26f9075e88081dd9c08aa1b5d71",
+      "lastModified": "2026-11-09T20:08:35Z"
+    },
+    ".opencode/skills/infrastructure-context/references/template.md": {
+      "hash": "7cf5cf118a081ef79f011071c9caed076ab2494d7d1c08de70b60c49b9b8cc3c",
+      "lastModified": "2026-11-09T20:08:35Z"
+    },
+    ".opencode/skills/coding-standards-context/SKILL.md": {
+      "hash": "58de162719a9c1f8224bfae8724091fb29b84f299c28880cee96b2fad03c3cf3",
+      "lastModified": "2026-11-09T20:08:35Z"
+    },
+    ".opencode/skills/coding-standards-context/references/template.md": {
+      "hash": "8e72b0629cc8a4b97a7c65bca9ff5881cf7a56ac84ca497e27e72dbe16e537f3",
+      "lastModified": "2026-11-09T20:08:35Z"
+    },
+    ".opencode/skills/apm-packaging/SKILL.md": {
+      "hash": "362a1275624ba250e6aa50e036f5862900915ac86ac71d43892230094faf67dd",
+      "lastModified": "2026-11-09T20:08:35Z"
+    },
+    ".opencode/skills/project-initialization/references/apm-workflow.md": {
+      "hash": "7a932f50d33d760b7bd6311965a3533d58ccf8f034cbde01ae2e56d84b4cfd9c",
+      "lastModified": "2026-11-09T20:08:35Z"
+    },
+    ".opencode/skills/project-initialization/references/apm-bootstrap.md": {
+      "hash": "20bd03e75fedd60c24ee2c4f8b1e1bbe5f720c75941e89eaae4771e3287562db",
+      "lastModified": "2026-11-09T20:08:35Z"
+    },
+    ".opencode/skills/project-initialization/references/phase-1-7-apm.md": {
+      "hash": "4fea1320f5cc98ad91791643d3b48b52e21dec0886b0d733dee420a2595d3715",
+      "lastModified": "2026-11-09T20:08:35Z"
+    },
+    ".opencode/skills/project-initialization/scripts/prepare-apm-packages.ps1": {
+      "hash": "c6ccc86d9c914182b9adf798726bd055582023496956c2da195a46985a24460a",
+      "lastModified": "2026-11-09T20:08:35Z"
+    },
+    ".opencode/rules/packages-index.json": {
+      "hash": "23ba12b3f6784cb30936b2b23eb6735023973f3d7a6e99582e142f7264d3a502",
+      "lastModified": "2026-11-09T20:08:35Z"
+    },
+    ".opencode/skills/project-update/SKILL.md": {
+      "hash": "77b53211bad24c96cc207f82191e5909f6365ca05a7c86dc849eda13eabe7a7b",
+      "lastModified": "2026-11-09T20:08:35Z"
+    },
+    ".opencode/skills/project-update/references/git-source-setup.md": {
+      "hash": "18fd9bf444a12045bb16fd51dd9ace818b7fd503ab99490161c44346f0a462f1",
+      "lastModified": "2026-11-09T20:08:35Z"
+    },
+    ".opencode/skills/project-update/references/detection-and-backup.md": {
+      "hash": "c2efe5ea4184132dbc0bc7f31dfa0c2361004047480dbf4881bb19f5822168c2",
+      "lastModified": "2026-11-09T20:08:35Z"
+    },
+    ".opencode/skills/project-update/references/migration-and-scan.md": {
+      "hash": "3f6d267ad6f64a49f14cd952e52b62ab94d1abf5501a5bd51e1e176c3328d19b",
+      "lastModified": "2026-11-09T20:08:35Z"
+    },
+    ".opencode/skills/project-update/references/core-update.md": {
+      "hash": "fb46fb229abfdefc62b2a1d3a61f3549115af4054bcfde94024fe05eaa4d6089",
+      "lastModified": "2026-11-09T20:08:35Z"
+    },
+    ".opencode/skills/project-update/references/preservation-and-validation.md": {
+      "hash": "ef8ca341e43a63001bc8dc35a16f0e3e3dbe3da461a187c69ed1f37fc00e8551",
+      "lastModified": "2026-11-09T20:08:35Z"
+    },
+    ".opencode/skills/project-update/references/cleanup-and-report.md": {
+      "hash": "146e093e6b7cdd0e1e3b7aed7c8bcb627fd300ce9eddf4d346ef3029ef36e25f",
+      "lastModified": "2026-11-09T20:08:35Z"
+    },
+    ".opencode/commands/initialize.md": {
+      "hash": "d272b249695684e9964ea826f861eb93e2c944b31ec14bc5ff3c5ecca7502e4d",
+      "lastModified": "2026-11-09T20:08:35Z"
+    },
+    ".opencode/commands/quick-init.md": {
+      "hash": "784abc90b96503f3e688729dd244e2b79a08b9f5228335335ab442533dd9930b",
+      "lastModified": "2026-11-09T20:08:35Z"
+    },
+    ".opencode/commands/taskmaster-init.md": {
+      "hash": "d22829c77209d06ee2aa571946456006c2c560cdacc6e282d2a93a2ebe382fe7",
+      "lastModified": "2026-11-09T20:08:35Z"
+    },
+    ".opencode/commands/docs-sync.md": {
+      "hash": "f89abd5002821e7b50cfb8b8c0eb8cf8a68d4860d0aadcacbdd5ad73caf53d7e",
+      "lastModified": "2026-11-09T20:08:35Z"
+    },
+    ".opencode/commands/package-new.md": {
+      "hash": "470dafc16cb9d0815220cebc105c64980c8d3ab6b77e2334cb234d6bccc9a03a",
+      "lastModified": "2026-11-09T20:08:35Z"
+    },
+    ".opencode/commands/update-workplace.md": {
+      "hash": "672dff33e4f54acfc8d1af4b29176271c95321f7a3b82a2ff674d7a433a78eed",
+      "lastModified": "2026-11-09T20:08:35Z"
+    },
+    "docs/GETTING_STARTED.md": {
+      "hash": "missing",
+      "lastModified": "2026-11-09T20:08:35Z",
+      "optional": true
+    },
+    "docs/ARCHITECTURE.md": {
+      "hash": "missing",
+      "lastModified": "2026-11-09T20:08:35Z",
+      "optional": true
+    },
+    "docs/core/ROLES.md": {
+      "hash": "missing",
+      "lastModified": "2026-11-09T20:08:35Z",
+      "optional": true
+    },
+    "docs/core/APM_PACKAGES.md": {
+      "hash": "missing",
+      "lastModified": "2026-11-09T20:08:35Z",
+      "optional": true
+    },
+    "docs/core/INITIALIZATION.md": {
+      "hash": "missing",
+      "lastModified": "2026-11-09T20:08:35Z",
+      "optional": true
+    },
+    "docs/core/DEVELOPMENT_WORKFLOW.md": {
+      "hash": "missing",
+      "lastModified": "2026-11-09T20:08:35Z",
+      "optional": true
+    },
+    "docs/core/MIGRATION_BACKUP.md": {
+      "hash": "missing",
+      "lastModified": "2026-11-09T20:08:35Z",
+      "optional": true
+    },
+    "docs/core/AGENT_CONTEXT_AND_DOCS_SYNC.md": {
+      "hash": "missing",
+      "lastModified": "2026-11-09T20:08:35Z",
+      "optional": true
+    },
+    "docs/core/CUSTOMIZATION.md": {
+      "hash": "missing",
+      "lastModified": "2026-11-09T20:08:35Z",
+      "optional": true
+    },
+    "docs/core/TDD_WORKFLOW.md": {
+      "hash": "missing",
+      "lastModified": "2026-11-09T20:08:35Z",
+      "optional": true
+    },
+    "docs/core/HOW_WORKPLACE_IMPROVES_AGENTS.html": {
+      "hash": "missing",
+      "lastModified": "2026-11-09T20:08:35Z",
+      "optional": true
+    },
+    "docs/PRESENTATION.md": {
+      "hash": "missing",
+      "lastModified": "2026-11-09T20:08:35Z",
+      "optional": true
+    },
+    "apm.yml": {
+      "hash": "missing",
+      "lastModified": "2026-11-09T20:08:35Z"
+    },
+    "CHANGELOG.md": {
+      "hash": "missing",
+      "lastModified": "2026-11-09T20:08:35Z",
+      "optional": true
+    },
+    ".opencode/skills/project-initialization/scripts/check-foreign-vocabulary.js": {
+      "hash": "7284a1e4c4b609c565a6d28314e94e7c3f2afc2394be8389974748298d200899",
+      "lastModified": "2026-11-09T20:08:35Z"
+    },
+    ".opencode/skills/project-initialization/assets/foreign-vocabulary-allowlist.json": {
+      "hash": "5e40eba2685c8c3f1550d3f4d196de36f9158002a262921b9901cac2bf408982",
+      "lastModified": "2026-11-09T20:08:35Z"
+    },
+    ".opencode/opencode.json": {
+      "hash": "f515a6f816d3fd343ef24a7ada1ae4a0a856e5d783aa23531dcee9e6890b8997",
+      "lastModified": "2026-11-09T20:08:35Z"
+    },
+    ".opencode/plugins/docs-sync.js": {
+      "hash": "7a29feede32c9a5602ba67e05be89d7b12411106a370b7d974c67b188f358965",
+      "lastModified": "2026-11-09T20:08:35Z"
+    },
+    ".opencode/skills/project-initialization/scripts/apm-install-preserving.js": {
+      "hash": "689ffeb9ec76a6b6810218e72f64cda99b195dc6d75e371a168dd6f02557dfd7",
+      "lastModified": "2026-11-09T20:08:35Z"
+    }
+  },
+  "apmPackages": {
+    "registryRepoUrl": "https://git.{bas_company}.com/DEMO.SE.AI/Workplace-Agent-Packages.git",
+    "registryBranch": "master",
+    "registryPath": "",
+    "indexFile": "index.json",
+    "offlineSnapshot": ".opencode/rules/packages-index.json",
+    "packages": [
+      "api",
+      "backend-developer",
+      "business-analyst",
+      "code-review",
+      "devops-engineer",
+      "frontend-developer",
+      "frontend-slides",
+      "jira-defect-analysis",
+      "llm-codegen-bench",
+      "markup",
+      "nc-code-security-audit",
+      "performance",
+      "product-migration",
+      "project-scorecard",
+      "qa",
+      "shopping-portal",
+      "stub-generation",
+      "test-description-generation",
+      "test-generation",
+      "ticket-triage",
+      "worklog-kit"
+    ],
+    "standaloneOnlyPackages": [
+      "frontend-slides",
+      "jira-defect-analysis",
+      "llm-codegen-bench",
+      "project-scorecard",
+      "shopping-portal",
+      "ticket-triage",
+      "worklog-kit"
+    ],
+    "fullModulePackages": [
+      "product-migration",
+      "stub-generation",
+      "test-description-generation",
+      "test-generation",
+      "worklog-kit"
+    ],
+    "note": "APM packages live in the standalone Workplace-Agent-Packages repo (registryRepoUrl), one directory per package at the repo root, referenced as `path: <id>` (no `packages/` prefix). They are NOT deployed into Core during template install. They are installed via APM (`apm install`) during /initialize Phase 1.7-APM or by adding the package (object form: `git: <registryRepoUrl>`, `path: <id>`, `ref: master`) to the project's `apm.yml`. Role-matched packs auto-install when x-workplace.targetRoles ∩ selectedRoles ≠ ∅. Optional packs (optional:true, standaloneOnly:false) are offered in Phase 1.7-APM Pass A.5. Standalone-only packs (optional:true, standaloneOnly:true) are skipped during initialization and require manual `apm.yml` edit + `apm install`. See .opencode/skills/project-initialization/references/apm-workflow.md."
+  },
+  "migrations": {
+    "applied": [
+      {
+        "version": "5.0.0",
+        "date": "2026-09-03",
+        "description": "OpenCode line baseline. Fresh port of the Cursor-line 4.8.0 template; the Cursor-line migration history (v2.0.0 ... v4.6.0) does not apply to projects initialized from this line and is not carried. Upgrading a project initialized by the Cursor line to this line is not supported."
+      }
+    ],
+    "available": []
+  },
+  "notes": "Migration catalog and release history for this line start at 5.0.0 (see CHANGELOG.md, whose Lineage note points at the Cursor-line history)."
+}

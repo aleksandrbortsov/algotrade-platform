@@ -1,0 +1,23 @@
+{
+  "project": {
+    "name": "algo-trade-platform",
+    "displayName": "AlgoTrade Platform",
+    "description": "A trading-strategy simulation and backtesting platform for retail traders, built as eight Spring Cloud microservices. Today it runs self-contained on market data already in its own MySQL schemas; a Tinkoff API market-data feed is the planned next milestone and is not implemented yet.",
+    "type": "Backend Microservices Platform",
+    "primaryGoal": "Let a user enter a trading strategy and see its analysis, simulated trades and profitability against real market data before risking capital.",
+    "targetAudience": "Retail traders and investors, from investment beginners to professionals",
+    "team": "[TBD - confirm later]",
+    "repository": "https://github.com/aleksandrbortsov/algotrade-platform.git",
+    "roles": ["backend", "fullstack"],
+    "plannedIntegrations": [
+      "Tinkoff API market-data feed (declared intent in README.md; zero references in Java sources or poms as of 2026-11-09)"
+    ]
+  },
+  "environments": {
+    "development": "Local: Consul 8500 (discovery), config-service 8888 (native profile), gateway-service 3535, auth-service 9000, admin-service 5555; person-service / user-service / notification-service on random ports (server.port: 0). MySQL: persons_schema :3306, users_schema :3307.",
+    "staging": "",
+    "production": ""
+  },
+  "initialized": "2026-11-09T18:46:25Z",
+  "template_version": "5.0.0"
+}

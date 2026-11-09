@@ -1,12 +1,12 @@
-2023-06-21 11:18:31.380  INFO 29360 --- [main] p.a.c.ConfigServiceApplicationTests      : Starting ConfigServiceApplicationTests using Java 17.0.8 on WS-9724 with PID 29360 (started by albo0215 in C:\Projects\Trainings\algotrade-platform\config-service)
-2023-06-21 11:18:31.403  INFO 29360 --- [main] p.a.c.ConfigServiceApplicationTests      : The following 1 profile is active: "native"
-2023-06-21 11:18:35.131  INFO 29360 --- [main] o.s.cloud.context.scope.GenericScope     : BeanFactory id=5691b4c9-dcbf-3c35-ad23-13e74b737266
-2023-06-21 11:18:40.563  INFO 29360 --- [main] o.s.cloud.commons.util.InetUtils         : Cannot determine local hostname
-2023-06-21 11:18:42.582  INFO 29360 --- [main] o.s.cloud.commons.util.InetUtils         : Cannot determine local hostname
-2023-06-21 11:18:43.144  WARN 29360 --- [main] iguration$LoadBalancerCaffeineWarnLogger : Spring Cloud LoadBalancer is currently working with the default cache. While this cache implementation is useful for development and tests, it's recommended to use Caffeine cache in production.You can switch to using Caffeine cache, by adding it and org.springframework.cache.caffeine.CaffeineCacheManager to the classpath.
-2023-06-21 11:18:43.164  INFO 29360 --- [main] o.s.b.a.e.web.EndpointLinksResolver      : Exposing 18 endpoint(s) beneath base path '/actuator'
-2023-06-21 11:18:43.411  INFO 29360 --- [main] p.a.c.ConfigServiceApplicationTests      : Started ConfigServiceApplicationTests in 14.591 seconds (JVM running for 17.679)
-2023-06-21 11:18:43.466 ERROR 29360 --- [catalogWatchTaskScheduler-1] o.s.c.c.discovery.ConsulDiscoveryClient  : Error watching Consul CatalogServices
+2023-08-09 14:06:04.544  INFO 13208 --- [main] p.a.c.ConfigServiceApplicationTests      : Starting ConfigServiceApplicationTests using Java 17.0.8 on WS-22878 with PID 13208 (started by albo0215 in C:\Projects\Trainings\algotrade-platform\config-service)
+2023-08-09 14:06:04.552  INFO 13208 --- [main] p.a.c.ConfigServiceApplicationTests      : The following 1 profile is active: "native"
+2023-08-09 14:06:05.969  INFO 13208 --- [main] o.s.cloud.context.scope.GenericScope     : BeanFactory id=5691b4c9-dcbf-3c35-ad23-13e74b737266
+2023-08-09 14:06:09.187  INFO 13208 --- [main] o.s.cloud.commons.util.InetUtils         : Cannot determine local hostname
+2023-08-09 14:06:10.569  INFO 13208 --- [main] o.s.cloud.commons.util.InetUtils         : Cannot determine local hostname
+2023-08-09 14:06:10.886  WARN 13208 --- [main] iguration$LoadBalancerCaffeineWarnLogger : Spring Cloud LoadBalancer is currently working with the default cache. While this cache implementation is useful for development and tests, it's recommended to use Caffeine cache in production.You can switch to using Caffeine cache, by adding it and org.springframework.cache.caffeine.CaffeineCacheManager to the classpath.
+2023-08-09 14:06:10.899  INFO 13208 --- [main] o.s.b.a.e.web.EndpointLinksResolver      : Exposing 18 endpoint(s) beneath base path '/actuator'
+2023-08-09 14:06:10.989  INFO 13208 --- [main] p.a.c.ConfigServiceApplicationTests      : Started ConfigServiceApplicationTests in 8.105 seconds (JVM running for 8.948)
+2023-08-09 14:06:11.054 ERROR 13208 --- [catalogWatchTaskScheduler-1] o.s.c.c.discovery.ConsulDiscoveryClient  : Error watching Consul CatalogServices
 
 com.ecwid.consul.transport.TransportException: org.apache.http.conn.HttpHostConnectException: Connect to localhost:8500 [localhost/127.0.0.1, localhost/0:0:0:0:0:0:0:1] failed: Connection refused: no further information
 	at com.ecwid.consul.transport.AbstractHttpTransport.executeRequest(AbstractHttpTransport.java:83) ~[consul-api-1.4.5.jar:na]
@@ -21,7 +21,7 @@ com.ecwid.consul.transport.TransportException: org.apache.http.conn.HttpHostConn
 	at java.base/java.util.concurrent.ScheduledThreadPoolExecutor$ScheduledFutureTask.run(ScheduledThreadPoolExecutor.java:305) ~[na:na]
 	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1136) ~[na:na]
 	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:635) ~[na:na]
-	at java.base/java.lang.Thread.run(Thread.java:857) ~[na:na]
+	at java.base/java.lang.Thread.run(Thread.java:833) ~[na:na]
 Caused by: org.apache.http.conn.HttpHostConnectException: Connect to localhost:8500 [localhost/127.0.0.1, localhost/0:0:0:0:0:0:0:1] failed: Connection refused: no further information
 	at org.apache.http.impl.conn.DefaultHttpClientConnectionOperator.connect(DefaultHttpClientConnectionOperator.java:156) ~[httpclient-4.5.13.jar:4.5.13]
 	at org.apache.http.impl.conn.PoolingHttpClientConnectionManager.connect(PoolingHttpClientConnectionManager.java:376) ~[httpclient-4.5.13.jar:4.5.13]
@@ -40,15 +40,15 @@ Caused by: org.apache.http.conn.HttpHostConnectException: Connect to localhost:8
 Caused by: java.net.ConnectException: Connection refused: no further information
 	at java.base/sun.nio.ch.Net.pollConnect(Native Method) ~[na:na]
 	at java.base/sun.nio.ch.Net.pollConnectNow(Net.java:672) ~[na:na]
-	at java.base/sun.nio.ch.NioSocketImpl.timedFinishConnect(NioSocketImpl.java:547) ~[na:na]
-	at java.base/sun.nio.ch.NioSocketImpl.connect(NioSocketImpl.java:602) ~[na:na]
+	at java.base/sun.nio.ch.NioSocketImpl.timedFinishConnect(NioSocketImpl.java:542) ~[na:na]
+	at java.base/sun.nio.ch.NioSocketImpl.connect(NioSocketImpl.java:597) ~[na:na]
 	at java.base/java.net.SocksSocketImpl.connect(SocksSocketImpl.java:327) ~[na:na]
 	at java.base/java.net.Socket.connect(Socket.java:633) ~[na:na]
 	at org.apache.http.conn.socket.PlainConnectionSocketFactory.connectSocket(PlainConnectionSocketFactory.java:75) ~[httpclient-4.5.13.jar:4.5.13]
 	at org.apache.http.impl.conn.DefaultHttpClientConnectionOperator.connect(DefaultHttpClientConnectionOperator.java:142) ~[httpclient-4.5.13.jar:4.5.13]
 	... 24 common frames omitted
 
-2023-06-21 11:18:44.484 ERROR 29360 --- [catalogWatchTaskScheduler-1] o.s.c.c.discovery.ConsulDiscoveryClient  : Error watching Consul CatalogServices
+2023-08-09 14:06:12.091 ERROR 13208 --- [catalogWatchTaskScheduler-1] o.s.c.c.discovery.ConsulDiscoveryClient  : Error watching Consul CatalogServices
 
 com.ecwid.consul.transport.TransportException: org.apache.http.conn.HttpHostConnectException: Connect to localhost:8500 [localhost/127.0.0.1, localhost/0:0:0:0:0:0:0:1] failed: Connection refused: no further information
 	at com.ecwid.consul.transport.AbstractHttpTransport.executeRequest(AbstractHttpTransport.java:83) ~[consul-api-1.4.5.jar:na]
@@ -63,7 +63,7 @@ com.ecwid.consul.transport.TransportException: org.apache.http.conn.HttpHostConn
 	at java.base/java.util.concurrent.ScheduledThreadPoolExecutor$ScheduledFutureTask.run(ScheduledThreadPoolExecutor.java:305) ~[na:na]
 	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1136) ~[na:na]
 	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:635) ~[na:na]
-	at java.base/java.lang.Thread.run(Thread.java:857) ~[na:na]
+	at java.base/java.lang.Thread.run(Thread.java:833) ~[na:na]
 Caused by: org.apache.http.conn.HttpHostConnectException: Connect to localhost:8500 [localhost/127.0.0.1, localhost/0:0:0:0:0:0:0:1] failed: Connection refused: no further information
 	at org.apache.http.impl.conn.DefaultHttpClientConnectionOperator.connect(DefaultHttpClientConnectionOperator.java:156) ~[httpclient-4.5.13.jar:4.5.13]
 	at org.apache.http.impl.conn.PoolingHttpClientConnectionManager.connect(PoolingHttpClientConnectionManager.java:376) ~[httpclient-4.5.13.jar:4.5.13]
@@ -82,8 +82,8 @@ Caused by: org.apache.http.conn.HttpHostConnectException: Connect to localhost:8
 Caused by: java.net.ConnectException: Connection refused: no further information
 	at java.base/sun.nio.ch.Net.pollConnect(Native Method) ~[na:na]
 	at java.base/sun.nio.ch.Net.pollConnectNow(Net.java:672) ~[na:na]
-	at java.base/sun.nio.ch.NioSocketImpl.timedFinishConnect(NioSocketImpl.java:547) ~[na:na]
-	at java.base/sun.nio.ch.NioSocketImpl.connect(NioSocketImpl.java:602) ~[na:na]
+	at java.base/sun.nio.ch.NioSocketImpl.timedFinishConnect(NioSocketImpl.java:542) ~[na:na]
+	at java.base/sun.nio.ch.NioSocketImpl.connect(NioSocketImpl.java:597) ~[na:na]
 	at java.base/java.net.SocksSocketImpl.connect(SocksSocketImpl.java:327) ~[na:na]
 	at java.base/java.net.Socket.connect(Socket.java:633) ~[na:na]
 	at org.apache.http.conn.socket.PlainConnectionSocketFactory.connectSocket(PlainConnectionSocketFactory.java:75) ~[httpclient-4.5.13.jar:4.5.13]

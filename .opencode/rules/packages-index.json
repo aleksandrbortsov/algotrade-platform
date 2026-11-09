@@ -1,0 +1,384 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-08-28T11:11:36Z",
+  "source": {
+    "repo": "Workplace Agent Packages",
+    "regeneratedBy": "scripts/regenerate-index.ps1"
+  },
+  "packages": [
+    {
+      "name": "api",
+      "version": "0.28.0",
+      "description": "API specialist agent and api-context skill for designing and integrating REST/GraphQL/tRPC APIs, authentication, and rate limiting.",
+      "path": "api",
+      "xWorkplace": {
+        "schemaVersion": 1,
+        "type": "role-pack",
+        "targetRoles": [
+          "frontend",
+          "backend",
+          "fullstack"
+        ],
+        "optional": false,
+        "standaloneOnly": false,
+        "contextSkills": [
+          "api-context"
+        ]
+      }
+    },
+    {
+      "name": "backend-developer",
+      "version": "0.28.0",
+      "description": "Backend specialist agent, database specialist agent, and backend/database context skills for service-layer, domain modeling, ORM, and schema design.",
+      "path": "backend-developer",
+      "xWorkplace": {
+        "schemaVersion": 1,
+        "type": "role-pack",
+        "targetRoles": [
+          "backend",
+          "fullstack"
+        ],
+        "optional": false,
+        "standaloneOnly": false,
+        "contextSkills": [
+          "backend-context",
+          "database-context"
+        ]
+      }
+    },
+    {
+      "name": "business-analyst",
+      "version": "1.10.0",
+      "description": "BA workflow commands and skills for MD-first DDS generation, use-case extraction, Confluence sync (publish/import/diff), Confluence/BASS import (single page and script-accelerated page-hierarchy bulk export with generated navigation), link reconcile across imported documents, shared edge-case catalogue, design mapping (screen to API), bidirectional design/code gap analysis, new-design feasibility (API/model gap), codebase impact analysis, Jira task generation, and UML diagramming.",
+      "path": "business-analyst",
+      "xWorkplace": {
+        "schemaVersion": 1,
+        "type": "role-pack",
+        "targetRoles": [
+          "ba"
+        ],
+        "optional": false,
+        "standaloneOnly": false,
+        "contextSkills": []
+      }
+    },
+    {
+      "name": "code-review",
+      "version": "0.28.0",
+      "description": "Multi-axis code review (correctness, readability, architecture, security, performance) plus behavior-preserving simplification. Ships a code-reviewer agent, /review and /simplify commands, and code-review + code-simplification skills. Offered in /initialize Phase 1.7-APM Pass A.5 for dev/QA roles.",
+      "path": "code-review",
+      "xWorkplace": {
+        "schemaVersion": 1,
+        "type": "role-pack",
+        "targetRoles": [
+          "qa",
+          "backend",
+          "frontend",
+          "fullstack"
+        ],
+        "optional": true,
+        "standaloneOnly": false,
+        "contextSkills": []
+      }
+    },
+    {
+      "name": "devops-engineer",
+      "version": "0.28.0",
+      "description": "Developer self-service for CI/CD triage and Jira ops: diagnose failed pipelines, create evidence-backed tickets, and fix/close issues — reducing DevOps dependency. Commands: ci-triage, ticket-create, ticket-fix, ticket-close.",
+      "path": "devops-engineer",
+      "xWorkplace": {
+        "schemaVersion": 1,
+        "type": "role-pack",
+        "targetRoles": [
+          "devops"
+        ],
+        "optional": true,
+        "standaloneOnly": false,
+        "contextSkills": []
+      }
+    },
+    {
+      "name": "frontend-developer",
+      "version": "0.28.0",
+      "description": "Frontend specialist agent and frontend-context skill for React/Vue/Svelte/Angular projects.",
+      "path": "frontend-developer",
+      "xWorkplace": {
+        "schemaVersion": 1,
+        "type": "role-pack",
+        "targetRoles": [
+          "frontend",
+          "fullstack"
+        ],
+        "optional": false,
+        "standaloneOnly": false,
+        "contextSkills": [
+          "frontend-context"
+        ]
+      }
+    },
+    {
+      "name": "frontend-slides",
+      "version": "0.28.0",
+      "description": "Zero-dependency HTML presentation generator. Builds animation-rich 16:9 web decks from scratch or converts PPT/PPTX, with visual style discovery, 34 bold templates, and an anti-AI-slop design philosophy. Vendored from github.com/zarazhangrui/frontend-slides (MIT).",
+      "path": "frontend-slides",
+      "xWorkplace": {
+        "schemaVersion": 1,
+        "type": "skill",
+        "targetRoles": [],
+        "optional": true,
+        "standaloneOnly": true,
+        "contextSkills": []
+      }
+    },
+    {
+      "name": "jira-defect-analysis",
+      "version": "0.28.0",
+      "description": "End-to-end analysis of a Jira defect ticket: fetch issue via mcp-atlassian, recover request_id from description/HAR/screenshot, query Graylog (with simple-graylog-mcp fallback), and produce a structured root-cause report. Installed only by adding the package to `apm.yml` and running `apm install`.",
+      "path": "jira-defect-analysis",
+      "xWorkplace": {
+        "schemaVersion": 1,
+        "type": "role-pack",
+        "targetRoles": [],
+        "optional": true,
+        "standaloneOnly": true,
+        "contextSkills": []
+      }
+    },
+    {
+      "name": "llm-codegen-bench",
+      "version": "0.28.0",
+      "description": "Role-agnostic LLM code-generation benchmark + scorer: /codegen-benchmark command, codegen-benchmark and codegen-scorer skills. Benchmarks the active agent model by generating, building, and evaluating code against standardised prompts.",
+      "path": "llm-codegen-bench",
+      "xWorkplace": {
+        "schemaVersion": 1,
+        "type": "role-pack",
+        "targetRoles": [],
+        "optional": true,
+        "standaloneOnly": true,
+        "contextSkills": []
+      }
+    },
+    {
+      "name": "markup",
+      "version": "1.0.0",
+      "description": "Multi-phase UI testability markup workflow for Playwright E2E tests. Ships discovery, verification, implementor and reviewer agents, the /testability-markup command, and a config-driven markup skill scoped by project-config.json.",
+      "path": "markup",
+      "xWorkplace": {
+        "schemaVersion": 1,
+        "type": "role-pack",
+        "targetRoles": [
+          "frontend",
+          "qa",
+          "fullstack"
+        ],
+        "optional": true,
+        "standaloneOnly": false,
+        "contextSkills": []
+      }
+    },
+    {
+      "name": "nc-code-security-audit",
+      "version": "1.0.0",
+      "description": "Security compliance audit against BASS Security Guides and OWASP Top 10 — ships a security-auditor agent, /security-validate and /security-update commands, and the security-compliance skill with 5 guide references (audit logging, web security headers, authenticators, developer checklist, OWASP Top 10). Offered in /initialize Phase 1.7-APM Pass A.5 for dev/QA roles.",
+      "path": "nc-code-security-audit",
+      "xWorkplace": {
+        "schemaVersion": 1,
+        "type": "role-pack",
+        "targetRoles": [
+          "backend",
+          "frontend",
+          "fullstack",
+          "qa"
+        ],
+        "optional": true,
+        "standaloneOnly": false,
+        "contextSkills": []
+      }
+    },
+    {
+      "name": "performance",
+      "version": "0.28.0",
+      "description": "Performance specialist agent plus performance-optimization (measure-first methodology) and performance-context skills for Core Web Vitals, bundle optimisation, caching, and performance monitoring.",
+      "path": "performance",
+      "xWorkplace": {
+        "schemaVersion": 1,
+        "type": "role-pack",
+        "targetRoles": [
+          "performance",
+          "fullstack"
+        ],
+        "optional": false,
+        "standaloneOnly": false,
+        "contextSkills": [
+          "performance-context"
+        ]
+      }
+    },
+    {
+      "name": "product-migration",
+      "version": "0.28.0",
+      "description": "Product migration pipeline (BE/FE/CIP tracks) for Cloud BSS upgrades. Ships orchestrator + executor agents, migration skills, slash commands, and a runtime/ folder relocated to the project root on first session.",
+      "path": "product-migration",
+      "xWorkplace": {
+        "schemaVersion": 1,
+        "type": "module",
+        "targetRoles": [
+          "upgrade",
+          "backend"
+        ],
+        "optional": true,
+        "standaloneOnly": false,
+        "contextSkills": [],
+        "activate": {
+          "movesRuntimeFolder": true,
+          "script": "scripts/activate.sh",
+          "markerFile": ".workplace/activated/product-migration.marker"
+        }
+      }
+    },
+    {
+      "name": "project-scorecard",
+      "version": "0.28.0",
+      "description": "Role-agnostic project quality scorecard: coding-standards agent, /quality-check command, and quality-check skill. Runs Build/Lint/TypeCheck/Tests/Security/Accessibility checks and produces a scored historical report.",
+      "path": "project-scorecard",
+      "xWorkplace": {
+        "schemaVersion": 1,
+        "type": "role-pack",
+        "targetRoles": [],
+        "optional": true,
+        "standaloneOnly": true,
+        "contextSkills": []
+      }
+    },
+    {
+      "name": "qa",
+      "version": "0.28.0",
+      "description": "Testing specialist agent, TDD/test-verify commands, and TDD-workflow + testing-context skills for unit/integration/E2E testing.",
+      "path": "qa",
+      "xWorkplace": {
+        "schemaVersion": 1,
+        "type": "role-pack",
+        "targetRoles": [
+          "qa"
+        ],
+        "optional": false,
+        "standaloneOnly": false,
+        "contextSkills": [
+          "testing-context"
+        ]
+      }
+    },
+    {
+      "name": "shopping-portal",
+      "version": "0.28.0",
+      "description": "Senior-Dev role-pack for building shopping portals on DEAPI + Bootstrap Frontend. Ships portal-e2e-architect, bss-config-router and portal-fe-optimizer agents plus 3 slash commands.",
+      "path": "shopping-portal",
+      "xWorkplace": {
+        "schemaVersion": 1,
+        "type": "role-pack",
+        "targetRoles": [],
+        "optional": true,
+        "standaloneOnly": true,
+        "contextSkills": [
+          "shopping-portal-context"
+        ]
+      }
+    },
+    {
+      "name": "stub-generation",
+      "version": "0.30.0",
+      "description": "AI-driven generator of executable stub code (TypeScript/Express handlers + Templates/** + Templates/Stubs.yaml) for ATP3 mocks that runs on the shared CCI MockServer + node-server runtime (imports, never modifies, the runtime harness / Scripts core lib). Two QA-deliverables per stub - human-readable STUBS.md and a Bruno collection (HTTP transports). Strict field fidelity (no extras outside the design; missing mandatory => block) and design-driven retries only (count + delay must come from design or clarification). Ships 7 agents (orchestrator, research, gen, review, doc, update, security), 13 stub-* skills (incl. stub-itf-export-sourcing + self-contained stub-mockserver-guidance with topics/), 6 user commands (incl. /sync-mockserver-guidance), and a runtime/ folder relocated to the project root on first session. Generate does not require mockserver on disk. v0.30.0 — ITF export sourcing, run progress, auth hygiene (C15), ITF TDM internalization, full-scope-by-default, mount-prefix defaults, handoff-update completion.",
+      "path": "stub-generation",
+      "xWorkplace": {
+        "schemaVersion": 1,
+        "type": "module",
+        "targetRoles": [
+          "qa"
+        ],
+        "optional": true,
+        "standaloneOnly": false,
+        "contextSkills": [],
+        "activate": {
+          "movesRuntimeFolder": true,
+          "script": "scripts/activate.sh",
+          "markerFile": ".workplace/activated/stub-generation.marker"
+        }
+      }
+    },
+    {
+      "name": "test-description-generation",
+      "version": "0.28.0",
+      "description": "AI-driven generator of test descriptions (test design) from application design artifacts. v2.39.0 — prompt-guard hook + missing-input hard STOP; v2.38.0 — workflow-start + gate --phase CLI; v2.37.0 — P18 TMS Story umbrella + Subtask.",
+      "path": "test-description-generation",
+      "xWorkplace": {
+        "schemaVersion": 1,
+        "type": "module",
+        "targetRoles": [
+          "qa"
+        ],
+        "optional": true,
+        "standaloneOnly": false,
+        "contextSkills": [],
+        "activate": {
+          "movesRuntimeFolder": true,
+          "script": "scripts/activate.sh",
+          "markerFile": ".workplace/activated/test-description-generation.marker"
+        }
+      }
+    },
+    {
+      "name": "test-generation",
+      "version": "0.28.0",
+      "description": "AI-driven test generation for layered Playwright automation. Ships orchestrator/research/generation/validation/reusability agents, eight test-* skills, the /generate-test command, and a runtime/ folder relocated to the project root on first session.",
+      "path": "test-generation",
+      "xWorkplace": {
+        "schemaVersion": 1,
+        "type": "module",
+        "targetRoles": [
+          "qa"
+        ],
+        "optional": true,
+        "standaloneOnly": false,
+        "contextSkills": [],
+        "activate": {
+          "movesRuntimeFolder": true,
+          "script": "scripts/activate.sh",
+          "markerFile": ".workplace/activated/test-generation.marker"
+        }
+      }
+    },
+    {
+      "name": "ticket-triage",
+      "version": "0.28.0",
+      "description": "Wave-based ticket triage pipeline (Ticket Triage Lead). Turns a raw Jira ticket into a root-cause report by orchestrating subagents across waves: Jira collection -> parallel Graylog + RAG documentation + code research -> root-cause synthesis. Each step writes artifacts under triage-lead/<TICKET>/ for progressive context enrichment. Installed only by adding the package to apm.yml and running apm install.",
+      "path": "ticket-triage",
+      "xWorkplace": {
+        "schemaVersion": 1,
+        "type": "role-pack",
+        "targetRoles": [],
+        "optional": true,
+        "standaloneOnly": true,
+        "contextSkills": []
+      }
+    },
+    {
+      "name": "worklog-kit",
+      "version": "0.28.0",
+      "description": "Jira worklog logging, LOE reporting, and program presentation decks. v2.6.3 — hooks.json merge keeps one command per event; ASK marker requires a real stamp-ask.ps1 invocation; Cursor AskQuestion ASK marker (stamp-ask.ps1); preToolUse stdout is only permission JSON; loads stamp-hook-common from docs/cursor-loe-report; fail-open Cursor hooks, array-safe hooks.json, transcript duration fallback; Claude Code and OpenCode adapters are in-tree (experimental until live stamp proof).",
+      "path": "worklog-kit",
+      "xWorkplace": {
+        "schemaVersion": 1,
+        "type": "module",
+        "targetRoles": [],
+        "optional": true,
+        "standaloneOnly": true,
+        "contextSkills": [],
+        "activate": {
+          "movesRuntimeFolder": true,
+          "script": "scripts/activate.sh",
+          "markerFile": ".workplace/activated/worklog-kit.marker"
+        }
+      }
+    }
+  ]
+}

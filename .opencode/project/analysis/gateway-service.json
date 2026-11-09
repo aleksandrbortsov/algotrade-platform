@@ -1,0 +1,220 @@
+{
+  "schemaVersion": 1,
+  "component": "gateway-service",
+  "path": "gateway-service",
+  "kind": "backend",
+  "languages": ["java", "yaml", "xml"],
+  "coverage": "full",
+  "filesRead": 12,
+  "generatedAt": "2026-11-10T00:00:00Z",
+
+  "coverageNote": "In-scope coverage is complete: 'git ls-files gateway-service' lists exactly 11 tracked files; 9 were opened in full (4 Java, module pom.xml, bootstrap.yml, .iml, maven-wrapper.properties, plus the root aggregator pom.xml only to resolve ${...} versions). Unopened: mvnw, mvnw.cmd, maven-wrapper.jar (binary). PROVENANCE RULE FOR THIS WHOLE REPORT: SCOPE declares config-service opaque and the route table lives there, so every route fact (routes, service-ids, predicates, filters, port, discovery.locator) is a HAND-OFF transcribed from the peer artifact .opencode/project/analysis/config-service.json, whose own brief does cover that file. Marked provenance='hand-off'; NOT independently verified here.",
+
+  "summary": "Reactive Spring Cloud Gateway edge service: 4 Java classes, 1 YAML, 0 tests. No JWT library is present or used - bearer-token validation is delegated over HTTP to service-id 'service-users' by one AbstractGatewayFilterFactory (AuthFilter). No route is declared in this component at all; config-service serves the table and attaches AuthFilter to 2 of 3 routes. HIGH-CONFIDENCE DEFECT: routes target lb://user-service while AuthFilter calls http://service-users - two ids for one service, so the auth hop probably cannot resolve.",
+
+  "entryPoints": [
+    { "path": "gateway-service/src/main/java/pro/algotrade/gatewayservice/GatewayServiceApplication.java", "purpose": "Only @SpringBootApplication; 13 lines, main() -> SpringApplication.run. No @Enable*, no RouteLocator bean, no CommandLineRunner." },
+    { "path": "gateway-service/src/main/resources/bootstrap.yml", "purpose": "The ONLY resource file (3 lines): spring.application.name=gateway-service and spring.config.import=optional:configserver:${CONFIG_SERVER:http://localhost:8888/}. There is NO application.yml in this module." },
+    { "path": "gateway-service/src/main/java/pro/algotrade/gatewayservice/config/WebClientConfig.java", "purpose": "Only @Configuration; single @Bean @LoadBalanced WebClient.Builder." },
+    { "path": "gateway-service/src/main/java/pro/algotrade/gatewayservice/config/AuthFilter.java", "purpose": "@Component extends AbstractGatewayFilterFactory<AuthFilter.Config>; runtime entry for any route naming 'AuthFilter'." }
+  ],
+
+  "architecture": {
+    "pattern": "reactive filter-chain (Spring Cloud Gateway / WebFlux route+filter pipeline) - NOT layered, NOT controller-service-repository",
+    "evidence": [
+      "pom.xml:28-31 spring-cloud-starter-gateway (Netty/WebFlux); spring-boot-starter-web is NEVER declared, so the servlet stack is absent",
+      "AuthFilter.java:22 returns a (exchange, chain) -> Mono lambda; continues via flatMap(chain::filter) at :44",
+      "AuthFilter.java:35-38 reactive WebClient with bodyToMono(UserDto.class) for the outbound hop",
+      "WebClientConfig.java:10-14 @LoadBalanced WebClient.Builder = client-side load balancing over discovered service-ids",
+      "Zero @RestController/@Controller/@RequestMapping in the module (grep: no matches)",
+      "4 classes in 3 packages - no service layer and no repository layer exist"
+    ]
+  },
+
+  "businessModules": [
+    { "name": "Edge bearer-token authentication filter", "path": "gateway-service/src/main/java/pro/algotrade/gatewayservice/config/AuthFilter.java", "purpose": "Requires 'Authorization: Bearer <token>' (exactly 2 space-separated parts), POSTs the token to http://service-users/users/validateToken?token=<token>, maps the reply to UserDto, then continues the chain." },
+    { "name": "Load-balanced reactive client wiring", "path": "gateway-service/src/main/java/pro/algotrade/gatewayservice/config/WebClientConfig.java", "purpose": "Supplies the @LoadBalanced WebClient.Builder that turns the URI host 'service-users' into a Consul-resolved instance." },
+    { "name": "Token-validation response contract", "path": "gateway-service/src/main/java/pro/algotrade/gatewayservice/dto/UserDto.java", "purpose": "@Data DTO (long id, String login, String token) - the shape expected back from the validation call." },
+    { "name": "Externalised-configuration bootstrap", "path": "gateway-service/src/main/resources/bootstrap.yml", "purpose": "Binds the module to config-service before the context refreshes, so the gateway's entire runtime configuration is delivered from outside this module." }
+  ],
+
+  "entities": [
+    { "name": "UserDto", "path": "gateway-service/src/main/java/pro/algotrade/gatewayservice/dto/UserDto.java", "relations": ["deserialised from POST http://service-users/users/validateToken (out of scope)", "consumed-by AuthFilter.apply bodyToMono at AuthFilter.java:38", "bound but NEVER read - its only intended use (X-auth-user-id header) is commented out at AuthFilter.java:42"] },
+    { "name": "AuthFilter.Config", "path": "gateway-service/src/main/java/pro/algotrade/gatewayservice/config/AuthFilter.java", "relations": ["passed to super(Config.class) at :16", "intentionally empty (:48-50) => the filter accepts no route arguments"] },
+    { "name": "JWT claim holder / token model", "path": "not found", "relations": ["no class parses or models JWT claims; the token stays an opaque string (AuthFilter.java:29-37)"] },
+    { "name": "@ConfigurationProperties class", "path": "not found", "relations": ["no type-safe config binding exists; the module has no application.yml to bind"] }
+  ],
+
+  "endpointGroups": [
+    { "pathPattern": "/auth/**", "methods": ["ANY"], "count": 1, "version": "unversioned (no /api/v{n} anywhere on this edge)", "auth": "NONE - no AuthFilter (deliberate: login/token entry point)", "sourceFile": "config-service/src/main/resources/config/gateway-service.yml:39-42 [hand-off]", "target": "lb://auth-service (route id auth-service-id)", "predicates": 1, "filters": [] },
+    { "pathPattern": "/users/**", "methods": ["ANY"], "count": 1, "version": "unversioned", "auth": "REQUIRED - filter AuthFilter", "sourceFile": "config-service/src/main/resources/config/gateway-service.yml:45-47 [hand-off]", "target": "lb://user-service (route id user-service-id)", "predicates": 1, "filters": ["AuthFilter"] },
+    { "pathPattern": "/persons/**", "methods": ["ANY"], "count": 1, "version": "unversioned", "auth": "REQUIRED - filter AuthFilter", "sourceFile": "config-service/src/main/resources/config/gateway-service.yml:50-53 [hand-off]", "target": "lb://person-service (route id 'person-service-in' - typo per the config-service analysis)", "predicates": 1, "filters": ["AuthFilter"] },
+    { "pathPattern": "/{service-id}/** (implicit, every Consul-registered service)", "methods": ["ANY"], "count": 0, "version": "unversioned", "auth": "NONE - the discovery locator applies no filter, so account-service, notification-service, config-service and admin-service are reachable through the edge and AuthFilter can be bypassed", "sourceFile": "config-service/src/main/resources/config/gateway-service.yml:37 spring.cloud.gateway.discovery.locator.enabled: true [hand-off]", "target": "every Consul service-id", "predicates": 0, "filters": [] },
+    { "pathPattern": "OUTBOUND, not served here: POST /users/validateToken?token=<jwt>", "methods": ["POST"], "count": 1, "version": "unversioned", "auth": "initiator side only - forwards the caller's bearer value as a QUERY PARAMETER", "sourceFile": "gateway-service/src/main/java/pro/algotrade/gatewayservice/config/AuthFilter.java:37", "target": "service-id 'service-users'", "predicates": 0, "filters": [] }
+  ],
+
+  "endpointGroupsNote": "NO inbound route is declared inside gateway-service: the only YAML is the 3-line bootstrap.yml, and grep over src/ for routes|predicates|StripPrefix|lb://|RouteLocator|management|actuator|health|security|cors matched nothing but package declarations. The 4 inbound groups above are the HAND-OFF described in coverageNote. No actuator/health path is exposed by any in-scope configuration.",
+
+  "integrations": [
+    {
+      "name": "user-service token-validation endpoint (service-id literal 'service-users')",
+      "package": "none - hand-rolled Spring WebClient; spring-cloud-starter-openfeign is NOT declared",
+      "usedIn": ["gateway-service/src/main/java/pro/algotrade/gatewayservice/config/AuthFilter.java:35-38"],
+      "purpose": "The ONLY authentication mechanism in this gateway: POST http://service-users/users/validateToken?token=<jwt>, body -> UserDto. A 2xx here IS the authorisation decision.",
+      "complianceHint": "TWO defects. (1) The bearer token travels as a URL QUERY PARAMETER, so it lands in access/mesh/proxy logs - move it to the downstream Authorization header. (2) SERVICE-ID MISMATCH: the route table (hand-off) targets lb://user-service, and config-service names each document after the consumer's spring.application.name, i.e. the registered id is 'user-service'. If so this @LoadBalanced call matches no Consul service and every request through AuthFilter fails to resolve."
+    },
+    {
+      "name": "Consul (discovery + KV config)",
+      "package": "org.springframework.cloud:spring-cloud-starter-consul-discovery + spring-cloud-starter-consul-config (BOM 2021.0.5)",
+      "usedIn": ["gateway-service/pom.xml:39-47", "implicitly WebClientConfig.java:11 @LoadBalanced, which cannot resolve 'service-users' without it"],
+      "purpose": "Registers gateway-service and resolves the service-id used by AuthFilter. No spring.cloud.consul.* host/port is set in this module, so the Spring Cloud default http://localhost:8500 applies unless config-service overrides it.",
+      "complianceHint": "Hard local runtime prerequisite: a Consul agent on :8500. The hand-off adds that spring.cloud.consul.config.enabled: true is set for gateway-service and for NO other consumer."
+    },
+    {
+      "name": "Spring Boot Admin client (admin-service, expected :5555)",
+      "package": "de.codecentric:spring-boot-admin-starter-client:2.7.7 (${spring-boot-admin.version}, root pom.xml:37)",
+      "usedIn": ["gateway-service/pom.xml:71-75"],
+      "purpose": "Registers the service with the monitoring UI. No spring.boot.admin.* key is set in this module; the hand-off records the URL ${ADMIN_SERVER:http://localhost:5555/} arriving from gateway-service.yml:22.",
+      "complianceHint": "Actuator exposure for this service is UNDETERMINED from scope - confirm gateway-service.yml before treating any service as beyond-localhost reachable."
+    },
+    {
+      "name": "config-service (Spring Cloud Config server)",
+      "package": "org.springframework.cloud:spring-cloud-starter-config + spring-cloud-starter-bootstrap",
+      "usedIn": ["gateway-service/src/main/resources/bootstrap.yml:3", "gateway-service/pom.xml:18-26"],
+      "purpose": "Pulls the entire runtime configuration, including the route table, at bootstrap time.",
+      "complianceHint": "External URL literal optional:configserver:${CONFIG_SERVER:http://localhost:8888/} - localhost:8888 default, env-overridable. No credential involved."
+    },
+    {
+      "name": "io.jsonwebtoken:jjwt 0.9.1 - NOT INTEGRATED",
+      "package": "io.jsonwebtoken:jjwt:0.9.1",
+      "usedIn": ["gateway-service/pom.xml:55-59 (inside an XML comment block)"],
+      "purpose": "None. Commented out AND imported by zero Java files (grep io.jsonwebtoken|Jwts|JWT|SignatureAlgorithm over src/: no matches).",
+      "complianceHint": "CORRECTION to Phase 3: .opencode/rules/development.md:42 and .opencode/project_init.md:220 both attribute jjwt 0.9.1 to gateway-service. It is commented out - this gateway is a token RELAY, not a validator."
+    },
+    {
+      "name": "com.auth0:java-jwt 4.2.1 - NOT INTEGRATED",
+      "package": "com.auth0:java-jwt:4.2.1",
+      "usedIn": ["gateway-service/pom.xml:49-53 (inside an XML comment block)"],
+      "purpose": "None - commented out and unreferenced, exactly like jjwt.",
+      "complianceHint": "No signing or verification of any kind happens in this process. Also attributed to this module by the same two Phase 3 statements."
+    },
+    {
+      "name": "spring-boot-starter-security - NOT INTEGRATED",
+      "package": "org.springframework.boot:spring-boot-starter-security",
+      "usedIn": ["gateway-service/pom.xml:61-64 (inside an XML comment block)"],
+      "purpose": "None. No SecurityWebFilterChain / @EnableWebFluxSecurity / SecurityFilterRegistration exists in the module.",
+      "complianceHint": "Consequence: authentication is ONLY whatever the per-route AuthFilter filter does. Any route without it is fully open."
+    }
+  ],
+
+  "dependencies": [
+    { "name": "org.springframework.cloud:spring-cloud-starter-gateway", "version": "BOM-managed (spring-cloud-dependencies 2021.0.5, imported pom.xml:85-95)", "category": "runtime - reactive edge router (WebFlux/Netty)" },
+    { "name": "org.springframework.cloud:spring-cloud-starter-consul-discovery", "version": "BOM-managed 2021.0.5", "category": "runtime - registration + service-id resolution" },
+    { "name": "org.springframework.cloud:spring-cloud-starter-consul-config", "version": "BOM-managed 2021.0.5", "category": "runtime - Consul KV config source; NOT dead, gateway-service.yml enables consul.config.enabled (hand-off)" },
+    { "name": "org.springframework.cloud:spring-cloud-starter-config", "version": "BOM-managed 2021.0.5", "category": "runtime - Config client driven by bootstrap.yml:3" },
+    { "name": "org.springframework.cloud:spring-cloud-starter-bootstrap", "version": "BOM-managed 2021.0.5", "category": "runtime - re-enables the legacy bootstrap context so bootstrap.yml is read; REDUNDANT with spring.config.import" },
+    { "name": "org.apache.commons:commons-lang3", "version": "UNRESOLVED STATICALLY - no version at pom.xml:66-69, no property or BOM entry in the root pom", "category": "runtime - UNUSED (no org.apache.commons/StringUtils/ObjectUtils import in the module)" },
+    { "name": "de.codecentric:spring-boot-admin-starter-client", "version": "2.7.7 (${spring-boot-admin.version}, root pom.xml:37)", "category": "runtime - monitoring registration" },
+    { "name": "org.projectlombok:lombok", "version": "1.18.24 provided; ${org.projectlombok.version} root pom.xml:34; also annotationProcessorPath pom.xml:108-114", "category": "compile-only - @Data on UserDto is its only use" },
+    { "name": "org.springframework.boot:spring-boot-starter-test", "version": "2.7.5 (inherited)", "category": "test - declared, ZERO test sources exist" },
+    { "name": "com.auth0:java-jwt", "version": "4.2.1 - COMMENTED OUT (pom.xml:49-53)", "category": "not-a-dependency (dead declaration)" },
+    { "name": "io.jsonwebtoken:jjwt", "version": "0.9.1 - COMMENTED OUT (pom.xml:55-59)", "category": "not-a-dependency (dead declaration)" },
+    { "name": "org.springframework.boot:spring-boot-starter-security", "version": "BOM-managed - COMMENTED OUT (pom.xml:61-64)", "category": "not-a-dependency (dead declaration)" },
+    { "name": "maven-compiler-plugin", "version": "3.8.1 with source=10 target=10 (pom.xml:101-116)", "category": "build - CONFLICTS with parent java.version=17 (root pom.xml:31)" },
+    { "name": "spring-boot-maven-plugin", "version": "inherited 2.7.5", "category": "build - repackages the executable jar" },
+    { "name": "Maven Wrapper", "version": "wrapper 3.1.0 / Maven 3.8.6 distribution (.mvn/wrapper/maven-wrapper.properties:1-2)", "category": "build tooling - committed for THIS module only, contradicting .opencode/rules/development.md" }
+  ],
+
+  "folderStructure": [
+    { "package": "pro.algotrade.gatewayservice", "path": "gateway-service/src/main/java/pro/algotrade/gatewayservice", "files": 1 },
+    { "package": "pro.algotrade.gatewayservice.config", "path": "gateway-service/src/main/java/pro/algotrade/gatewayservice/config", "files": 2 },
+    { "package": "pro.algotrade.gatewayservice.dto", "path": "gateway-service/src/main/java/pro/algotrade/gatewayservice/dto", "files": 1 },
+    { "package": "(resources)", "path": "gateway-service/src/main/resources", "files": 1 },
+    { "package": "(test)", "path": "gateway-service/src/test", "files": 0 }
+  ],
+
+  "codeQuality": {
+    "testFiles": "not found - gateway-service/src/test does not exist; 0 test classes against 4 production classes",
+    "mainClasses": 4,
+    "javaSourceFiles": 4,
+    "javaLOC": 89,
+    "todoFixmeCount": 0,
+    "logging": "none - no @Slf4j, no Logger, no log.* call anywhere in the module; a rejected request leaves no trace from this code",
+    "lintFormatConfig": "none enforced - no Checkstyle/PMD/Spotless/editorconfig in the module; gateway-service.iml carries only a SonarLint uniqueId (:3-5), an IDE-side attachment, so a clean checkout enforces nothing",
+    "ci": "not found (no CI config in the repository at all)",
+    "containerisation": "no Dockerfile (only person-service and user-service have one), no compose entry; git history is 2 commits: 'initial commit' and 'SSH key added' (bbf3563)"
+  },
+
+  "patterns": [
+    { "name": "Reactive (WebFlux) stack exclusively - no servlet API", "evidence": ["pom.xml:28-31 gateway starter, spring-boot-starter-web absent", "AuthFilter.java:22 (exchange, chain) -> Mono", "AuthFilter.java:38 bodyToMono(UserDto.class)"] },
+    { "name": "Self-registering gateway filter factory", "evidence": ["AuthFilter.java:10-11 @Component + AbstractGatewayFilterFactory", "AuthFilter.java:16 super(Config.class)"] },
+    { "name": "Service-id URI + @LoadBalanced WebClient instead of OpenFeign", "evidence": ["WebClientConfig.java:10-14", "AuthFilter.java:37 uri(\"http://service-users/users/validateToken?token=\" + parts[1])", "spring-cloud-starter-openfeign absent from pom.xml"] },
+    { "name": "Reject by throwing an untyped RuntimeException (no error contract)", "evidence": ["AuthFilter.java:24 RuntimeException(\"Missing authorization information\")", "AuthFilter.java:32 RuntimeException(\"Incorrect authorization structure\")", "no ErrorWebExceptionHandler / @ExceptionHandler / @ControllerAdvice in the module (grep: no matches)"] },
+    { "name": "Discarded reactive mutation - dead code path", "evidence": ["AuthFilter.java:40-42 exchange.getRequest().mutate(); return value dropped and the .header(\"X-auth-user-id\", ...) line commented out => pure no-op; the authenticated identity is never forwarded downstream and UserDto is never read"] },
+    { "name": "Commented-out dependency blocks retained in-tree", "evidence": ["pom.xml:49-53 java-jwt", "pom.xml:55-59 jjwt", "pom.xml:61-64 spring-boot-starter-security"] },
+    { "name": "Per-module duplication of the spring-cloud-dependencies BOM import", "evidence": ["gateway-service/pom.xml:85-95", "same block in admin-service/pom.xml:47-53"] },
+    { "name": "No CORS configuration anywhere", "evidence": ["grep cors|CorsWebFilter|CorsConfiguration over gateway-service: no matches - cross-origin handling is absent"] },
+    { "name": "Two competing config-import mechanisms both configured", "evidence": ["spring-cloud-starter-bootstrap + bootstrap.yml (legacy bootstrap context)", "AND spring.config.import: optional:configserver: (Boot 2.4+) at bootstrap.yml:3"] },
+    { "name": "Maven Wrapper committed per-module rather than at the reactor root", "evidence": ["gateway-service/mvnw", "gateway-service/mvnw.cmd", "gateway-service/.mvn/wrapper/maven-wrapper.properties"] }
+  ],
+
+  "apiSpecDiscovery": {
+    "openapi": "not found",
+    "swagger": "not found",
+    "springdoc": "not found - no springdoc or swagger artifact among the 9 active + 3 commented <dependency> declarations",
+    "postmanOrBruno": "not found in this component",
+    "routeDocumentation": "not found - no README, docs or .http file inside gateway-service",
+    "conclusion": "The gateway publishes no machine-readable description of itself; its contract IS the route table, which lives in another module."
+  },
+
+  "persistenceLayer": "none - stateless. No spring-boot-starter-data-jpa, mysql-connector-j, spring-jdbc, R2DBC or cache dependency in gateway-service/pom.xml; grep for ddl-auto|datasource|jdbc|jpa over the module: no matches. The gateway owns no schema and holds no state.",
+
+  "answers": {
+    "a_whereAreRoutesDeclared": "NEITHER format, inside this component. The only YAML (src/main/resources/bootstrap.yml, 3 lines) has no spring.cloud.gateway.routes; there is no RouteLocator @Bean and the single @Configuration declares only a WebClient.Builder. grep over src/ for routes|predicates|StripPrefix|lb://|RouteLocator: no matches. The table is pulled at bootstrap time from config-service and lives in config-service/src/main/resources/config/gateway-service.yml:36-54 (path cited, NOT read - config-service is declared opaque). Its contents are in endpointGroups[] above, with provenance hand-off: 3 explicit routes plus discovery.locator.enabled=true, Path-only predicates, no StripPrefix/AddRequestHeader/Retry/RequestRateLimiter, server.port 3535.",
+    "b_whichJwtLibraryVerifies": "NONE. No JWT library is on the classpath and no Java file imports one. Verification is delegated: AuthFilter.java:35-38 POSTs the raw bearer token to http://service-users/users/validateToken?token=<token> and treats a 2xx UserDto as 'valid'. This process never sees exp or the signature.",
+    "c_isJjwtReferenced": "No, on both counts: io.jsonwebtoken:jjwt:0.9.1 sits inside an XML comment at pom.xml:55-59 so it is never resolved, and grep for io.jsonwebtoken|Jwts|JWT|SignatureAlgorithm over src/ returned zero matches. Identical for com.auth0:java-jwt 4.2.1 (pom.xml:49-53).",
+    "d_whatProducesThe401": "Nothing - there is no 401 in this module. A missing header (AuthFilter.java:24) or a malformed Bearer value (:32) throws a bare RuntimeException inside the filter chain; with no ErrorWebExceptionHandler, @ControllerAdvice or SecurityWebFilter present, WebFlux's default error handling renders that as HTTP 500 with a Boot default JSON body. A downstream 401 from /users/validateToken surfaces as WebClientResponseException from .retrieve() and likewise becomes 500. So an expired or invalid token yields 500, never 401 - and it is NOT dead code: the hand-off shows AuthFilter is attached to /users/** and /persons/**. Inferred from code + reactive-stack defaults; not observed at runtime.",
+    "e_hardcodedBaseUrl": "One Java literal: \"http://service-users/users/validateToken\" (AuthFilter.java:37) - hard-coded scheme AND service-id, not an 'lb://' URI, not injected from configuration; because the builder is @LoadBalanced the host is still resolved through Consul Discovery, so it is not a fixed host:port. The inconsistency is the finding: the route table uses the canonical lb://user-service form while this filter hand-builds http://service-users - two ids for one service. Second literal: http://localhost:8888/ at bootstrap.yml:3 (CONFIG_SERVER env-overridable). No external internet URL exists in this module."
+  },
+
+  "secrets": {
+    "valuesCopied": "none - no secret, key, password, token or private-key literal exists anywhere in gateway-service",
+    "detail": "The module's only YAML is 3 lines and holds no credential property; AuthFilter handles a bearer token only as a runtime value.",
+    "inScopeConcern": "Transport, not storage: the bearer token is placed in a query string (AuthFilter.java:37), putting live credentials into logs on the path.",
+    "outsideScopeCitations": "Path/property names only, values not reproduced: config-service/src/main/resources/config/gateway-service.yml:22 spring.boot.admin.client URL placeholder ${ADMIN_SERVER:http://localhost:5555/} (no credential). The config-service analysis separately records plaintext credentials and a commented RSA private key in out-of-scope files."
+  },
+
+  "crossComponentDependencies": [
+    { "targetPath": "config-service/src/main/resources/config/gateway-service.yml", "via": "spring.config.import: optional:configserver:${CONFIG_SERVER:http://localhost:8888/} at gateway-service/src/main/resources/bootstrap.yml:3 - delivers the ENTIRE runtime config including the route table. Path cited only; not read." },
+    { "targetPath": "user-service (Consul service-id literal 'service-users')", "via": "HTTP POST /users/validateToken?token=<jwt> via @LoadBalanced WebClient at gateway-service/src/main/java/pro/algotrade/gatewayservice/config/AuthFilter.java:37" },
+    { "targetPath": "auth-service", "via": "ROUTE [hand-off, path only]: gateway-service.yml:39-42 Path=/auth/** -> lb://auth-service, no AuthFilter. Not read." },
+    { "targetPath": "person-service", "via": "ROUTE [hand-off, path only]: gateway-service.yml:50-53 Path=/persons/** -> lb://person-service, filter AuthFilter. Not read." },
+    { "targetPath": "account-service / notification-service / config-service / admin-service", "via": "IMPLICIT ROUTE [hand-off]: discovery.locator.enabled: true makes each reachable under /{service-id}/** with no AuthFilter, though none has an explicit route." },
+    { "targetPath": "admin-service (expected on :5555)", "via": "spring-boot-admin-starter-client 2.7.7 (pom.xml:71-75); no spring.boot.admin.* key set in this module - per hand-off the URL arrives from gateway-service.yml:22" },
+    { "targetPath": "external: Consul agent (default http://localhost:8500)", "via": "spring-cloud-starter-consul-discovery + -consul-config (pom.xml:39-47); no host/port override inside this module" },
+    { "targetPath": "pro.algotrade:algo-trade-platform:1.0 (root aggregator pom.xml)", "via": "Maven <parent> at pom.xml:5-9 - supplies Spring Boot 2.7.5, java.version 17, spring-cloud 2021.0.5, spring-boot-admin 2.7.7, lombok 1.18.24" }
+  ],
+
+  "gaps": [
+    "ROUTE TABLE NOT INDEPENDENTLY VERIFIED - the core question was answered by hand-off from .opencode/project/analysis/config-service.json, not by reading gateway-service.yml, because SCOPE declares config-service opaque. If that report is wrong this one is wrong with it; its route line numbers also differ by +/-1 from account-service's citations (:40-42/:45-47/:51-53).",
+    "gateway-service.yml properties the config-service analysis did not quote stay unknown: any default-filters block, global CORS/management/security keys, any Retry or RequestRateLimiter configuration.",
+    "Actuator/health surface for this service is unknown - no management.* property exists in any in-scope file.",
+    "SERVICE-ID 'service-users' RESOLUTION - the top open question, uncloseable from either component's scope: it needs user-service's spring.application.name. lb://user-service in the route table makes a mismatch likely, but 'likely' is not 'confirmed' and no live request was observed.",
+    "No build or run was permitted: the 500-not-401 conclusion is inferred from defaults, BOM-resolved versions are unconfirmed (needs 'mvn dependency:tree'), and whether the module compiles under source/target 10 against a Java 17 reactor is untested.",
+    "mvnw and mvnw.cmd were not opened (standard Maven Wrapper 3.1.0 scripts); maven-wrapper.jar is binary."
+  ],
+
+  "recommendations": [
+    "P1 defect - AuthFilter.java:40-42: the mutate() result is dropped and the X-auth-user-id header line is commented out, so the authenticated identity never reaches any downstream service. Rebuild as exchange.getRequest().mutate().header(\"X-auth-user-id\", String.valueOf(userDto.getId())).build() and pass the MUTATED exchange into the chain.",
+    "P1 defect - answer 401, not 500: replace both 'throw new RuntimeException(...)' (AuthFilter.java:24, :32) with a typed exception plus an ErrorWebExceptionHandler that writes 401 for missing/malformed tokens and maps WebClientResponseException.Unauthorized from the validation call to 401 too.",
+    "P1 security - take the bearer token out of the query string (AuthFilter.java:37) and send it as the downstream Authorization header; add explicit onStatus handling instead of relying on .retrieve(), plus a timeout, so an unavailable user-service degrades cleanly instead of hanging the edge.",
+    "P1 correctness - reconcile the literal service-id 'service-users' (AuthFilter.java:37) with the actual registered name of user-service before any release. The route table already targets lb://user-service, so the gateway uses two ids for one service; if they differ there is no working authenticated path in the platform.",
+    "P1 security (confirm in gateway-service.yml) - spring.cloud.gateway.discovery.locator.enabled: true turns the 3-route table into a convenience list rather than an allow-list: any Consul-registered service is reachable under /{service-id}/** with NO AuthFilter. Disable or constrain the locator.",
+    "P2 - delete the three commented dependency blocks (pom.xml:49-53, :55-59, :61-64). They are the direct cause of Phase 3 attributing jjwt 0.9.1, java-jwt 4.2.1 and spring-boot-starter-security to this module; correct .opencode/rules/development.md:42 and .opencode/project_init.md:220 - this gateway is a token RELAY, not a validator.",
+    "P2 - pom.xml:106-107 sets maven-compiler source/target 10 while the parent declares java.version 17 (root pom.xml:31). Drop the explicit 10/10 so the module stops compiling to a different bytecode level from the reactor.",
+    "P2 - drop the unused commons-lang3 dependency (pom.xml:66-69): zero imports in the module.",
+    "P2 - add the first test. 4 classes, the sole authentication gate for the platform, 0 tests. One WebTestClient test proving 401-without-token and 200-with-valid-token pins exactly what the fixes above change. Also add logging - a rejected request currently leaves no trace.",
+    "P2 - declare routes in-tree (a local application.yml or a Java RouteLocator bean) and leave config-service for environment-specific overrides; today this component cannot be reviewed or tested as a gateway.",
+    "Process - the route enumeration this brief demanded exists here ONLY as an attributed hand-off; the authoritative copy is in config-service.json. No re-dispatch is needed, but Phase 5 should cross-link the two artifacts: a reader of gateway-service.json alone finds no inbound route in this component."
+  ]
+}

@@ -1,0 +1,185 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-11-09T19:37:28Z",
+  "delegationMode": "parallel-subagents",
+  "notes": "Maven multi-module reactor (pro.algotrade:algo-trade-platform:1.0, spring-boot-starter-parent 2.7.5, java.version 17). Root aggregator pom analysed by the orchestrator in Phase 3, not dispatched as a component. admin-service and config-service are classified kind=infra (monitoring plane and configuration-delivery plane respectively), all six product services are kind=backend. person-service and user-service own a Dockerfile - folded into their own briefs per dispatch.md detection rule.",
+  "components": [
+    {
+      "name": "gateway-service",
+      "path": "gateway-service",
+      "kind": "backend",
+      "languages": ["java"],
+      "status": "completed",
+      "coverage": "full",
+      "artifacts": { "json": "gateway-service.json", "md": "gateway-service.md" },
+      "counts": {
+        "businessModules": 4,
+        "entities": 4,
+        "endpointGroups": 5,
+        "integrations": 7,
+        "gaps": 6
+      },
+      "gaps": [
+        "Route table is a hand-off from config-service.json, not independently read inside gateway-service.",
+        "Service-id mismatch between lb://user-service and http://service-users is likely but not runtime-confirmed.",
+        "Actuator exposure and default gateway filters remain unverified."
+      ]
+    },
+    {
+      "name": "auth-service",
+      "path": "auth-service",
+      "kind": "backend",
+      "languages": ["java"],
+      "status": "completed",
+      "coverage": "full",
+      "artifacts": { "json": "auth-service.json", "md": "auth-service.md" },
+      "counts": {
+        "businessModules": 6,
+        "entities": 2,
+        "endpointGroups": 4,
+        "integrations": 7,
+        "gaps": 6
+      },
+      "gaps": [
+        "No active OAuth2 endpoints or signing/verification beans; the login endpoint returns the literal token string.",
+        "PasswordConfig compile viability is static-only because no build was permitted.",
+        "SAS 1.0.0 compatibility with Spring Boot 2.7.5 remains unverified.",
+        "app.key and app.pub contents were deliberately not read."
+      ]
+    },
+    {
+      "name": "user-service",
+      "path": "user-service",
+      "kind": "backend",
+      "languages": ["java"],
+      "status": "completed",
+      "coverage": "full",
+      "artifacts": { "json": "user-service.json", "md": "user-service.md" },
+      "counts": {
+        "businessModules": 6,
+        "entities": 3,
+        "endpointGroups": 2,
+        "integrations": 10,
+        "gaps": 5
+      },
+      "gaps": [
+        "Whether jwt.secret is shared with gateway/auth cannot be proven without reading secret values.",
+        "Duplicate /users/{id} and /users/{username} route resolution is static inference.",
+        "Physical column names and ddl-auto values are carried from central configuration, not local sources."
+      ]
+    },
+    {
+      "name": "person-service",
+      "path": "person-service",
+      "kind": "backend",
+      "languages": ["java"],
+      "status": "completed",
+      "coverage": "full",
+      "artifacts": { "json": "person-service.json", "md": "person-service.md" },
+      "counts": {
+        "businessModules": 5,
+        "entities": 1,
+        "endpointGroups": 2,
+        "integrations": 5,
+        "gaps": 5
+      },
+      "gaps": [
+        "External uuid contract versus user-service mirror is unresolved.",
+        "Circular person.userId and user.personId references have no constraint or ownership decision.",
+        "Generated MySQL DDL was not inspected."
+      ]
+    },
+    {
+      "name": "account-service",
+      "path": "account-service",
+      "kind": "backend",
+      "languages": ["java"],
+      "status": "completed",
+      "coverage": "full",
+      "artifacts": { "json": "account-service.json", "md": "account-service.md" },
+      "counts": {
+        "businessModules": 3,
+        "entities": 3,
+        "endpointGroups": 0,
+        "integrations": 4,
+        "gaps": 8
+      },
+      "gaps": [
+        "endpointGroups: 0 is an evidence-backed intentional finding, not an incomplete scan; no controller or mapping exists.",
+        "No Account entity or accounts schema exists; AccountTariff and TokenStatus are unreferenced.",
+        "Module cannot start because JPA requires a datasource and no datasource is configured.",
+        "Validator shallow-flag accepted under Phase 4 exception and recorded in project_init.md Open Gaps."
+      ]
+    },
+    {
+      "name": "notification-service",
+      "path": "notification-service",
+      "kind": "backend",
+      "languages": ["java"],
+      "status": "completed",
+      "coverage": "full",
+      "artifacts": { "json": "notification-service.json", "md": "notification-service.md" },
+      "counts": {
+        "businessModules": 3,
+        "entities": 0,
+        "endpointGroups": 0,
+        "integrations": 5,
+        "gaps": 7
+      },
+      "gaps": [
+        "entities: 0 is an evidence-backed intentional finding, not an incomplete scan; the module has only application, scheduler, mail service, and disabled Kafka listener classes.",
+        "endpointGroups: 0 is intentional; the runtime trigger is @Scheduled, with no application HTTP controllers.",
+        "Runtime Gmail delivery and actual birthday behavior are unverified.",
+        "Validator shallow-flags accepted under Phase 4 exception and recorded in project_init.md Open Gaps."
+      ]
+    },
+    {
+      "name": "config-service",
+      "path": "config-service",
+      "kind": "infra",
+      "languages": ["java", "yaml"],
+      "status": "completed",
+      "coverage": "partial",
+      "artifacts": { "json": "config-service.json", "md": "config-service.md" },
+      "counts": {
+        "businessModules": 2,
+        "entities": 0,
+        "endpointGroups": 2,
+        "integrations": 6,
+        "gaps": 8
+      },
+      "gaps": [
+        "Committed runtime logs were not fully read or decompressed, so credential leakage into logs is unverified.",
+        "Sibling local configuration files were not read, so the exact central-versus-local split is only partly confirmed.",
+        "Config-server override flags and Spring Boot Admin default URL behavior were not runtime-verified."
+      ]
+    },
+    {
+      "name": "admin-service",
+      "path": "admin-service",
+      "kind": "infra",
+      "languages": ["java", "yaml"],
+      "status": "completed",
+      "coverage": "full",
+      "artifacts": { "json": "admin-service.json", "md": "admin-service.md" },
+      "counts": {
+        "businessModules": 2,
+        "entities": 0,
+        "endpointGroups": 7,
+        "integrations": 5,
+        "gaps": 6
+      },
+      "gaps": [
+        "Version placeholders are carried from parent metadata, not resolved by a build.",
+        "External exposure of :5555 beyond localhost is not expressible in repository configuration.",
+        "The legacy login UI dependency's runtime effect is unverified without a build."
+      ]
+    }
+  ],
+  "coverage": {
+    "api": true,
+    "database": true,
+    "frontend": false,
+    "infrastructure": true
+  }
+}

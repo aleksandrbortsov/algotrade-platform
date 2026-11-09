@@ -1,0 +1,257 @@
+{
+  "schemaVersion": 1,
+  "component": "admin-service",
+  "path": "admin-service",
+  "kind": "infra",
+  "languages": ["Java 17", "YAML", "XML (Maven POM)"],
+  "coverage": "full",
+  "filesRead": 7,
+  "generatedAt": "2026-11-10T00:00:00Z",
+  "entryPoints": [
+    {
+      "path": "admin-service/src/main/java/pro/algotrade/adminservice/AdminServiceApplication.java",
+      "purpose": "Sole Spring Boot main class; carries @EnableAdminServer (line 7) + @SpringBootApplication (line 8)."
+    },
+    {
+      "path": "admin-service/src/main/resources/application.yml",
+      "purpose": "Only runtime configuration file; 48 lines, no profile-specific sibling exists."
+    },
+    {
+      "path": "admin-service/pom.xml",
+      "purpose": "Module build; parent pro.algotrade:algo-trade-platform:1.0, 5 dependencies, spring-boot-maven-plugin repackage."
+    }
+  ],
+  "architecture": {
+    "pattern": "Single-purpose monitoring plane: one Spring Boot Admin (SBA) server on a fixed port, self-secured by Spring Security, self-registering into Consul; no business logic, no persistence, no inbound API of its own.",
+    "evidence": [
+      "admin-service/src/main/java/pro/algotrade/adminservice/AdminServiceApplication.java:7 @EnableAdminServer",
+      "admin-service/src/main/java/pro/algotrade/adminservice/WebSecurityConfig.java:26-52 SecurityFilterChain bean",
+      "admin-service/src/main/resources/application.yml:1-2 server.port 5555",
+      "admin-service/src/main/resources/application.yml:11-16 spring.cloud.consul.* + discovery.register-health-check: false",
+      "admin-service module contains exactly 2 .java files, 1 .yml, 1 pom.xml (+ Maven wrapper + .iml); no src/test, no Dockerfile"
+    ]
+  },
+  "businessModules": [
+    {
+      "name": "monitoring-plane",
+      "path": "admin-service/src/main/java/pro/algotrade/adminservice",
+      "purpose": "Ops-only Spring Boot Admin server: aggregates registered services and exposes the SBA web UI on :5555 behind form+basic auth. No domain behaviour."
+    },
+    {
+      "name": "monitoring-plane-config",
+      "path": "admin-service/src/main/resources/application.yml",
+      "purpose": "Port 5555, Consul coordinates, the single in-memory security user, file logging + rolling policy. Two blocks are commented out (actuator exposure, self-registration)."
+    }
+  ],
+  "entities": [],
+  "endpointGroups": [
+    {
+      "pathPattern": "/assets/**",
+      "methods": ["GET"],
+      "auth": "permitAll (WebSecurityConfig.java:36) - SBA UI static resources",
+      "sourceFile": "admin-service/src/main/java/pro/algotrade/adminservice/WebSecurityConfig.java"
+    },
+    {
+      "pathPattern": "/login",
+      "methods": ["GET", "POST"],
+      "auth": "permitAll (WebSecurityConfig.java:37); formLogin loginPage + SavedRequestAwareAuthenticationSuccessHandler, targetUrlParameter 'redirectTo' (lines 29-39)",
+      "sourceFile": "admin-service/src/main/java/pro/algotrade/adminservice/WebSecurityConfig.java"
+    },
+    {
+      "pathPattern": "/logout",
+      "methods": ["POST"],
+      "auth": "authenticated; logoutUrl set at WebSecurityConfig.java:40",
+      "sourceFile": "admin-service/src/main/java/pro/algotrade/adminservice/WebSecurityConfig.java"
+    },
+    {
+      "pathPattern": "/instances",
+      "methods": ["POST"],
+      "auth": "authenticated (form session or httpBasic); CSRF IGNORED via AntPathRequestMatcher (WebSecurityConfig.java:43-45) - SBA client registration API",
+      "sourceFile": "admin-service/src/main/java/pro/algotrade/adminservice/WebSecurityConfig.java"
+    },
+    {
+      "pathPattern": "/instances/*",
+      "methods": ["DELETE"],
+      "auth": "authenticated; CSRF IGNORED (WebSecurityConfig.java:46-47) - deregistration API",
+      "sourceFile": "admin-service/src/main/java/pro/algotrade/adminservice/WebSecurityConfig.java"
+    },
+    {
+      "pathPattern": "/actuator/**",
+      "methods": ["GET", "POST"],
+      "auth": "authenticated; CSRF IGNORED (WebSecurityConfig.java:48). INERT in this module: no spring-boot-starter-actuator dependency in admin-service/pom.xml, so no actuator endpoint is served here.",
+      "sourceFile": "admin-service/src/main/java/pro/algotrade/adminservice/WebSecurityConfig.java"
+    },
+    {
+      "pathPattern": "** (anyRequest)",
+      "methods": ["ANY"],
+      "auth": "authenticated(); formLogin + httpBasic both enabled (WebSecurityConfig.java:38-41); rememberMe key UUID.randomUUID(), tokenValiditySeconds 60 (line 49)",
+      "sourceFile": "admin-service/src/main/java/pro/algotrade/adminservice/WebSecurityConfig.java"
+    }
+  ],
+  "integrations": [
+    {
+      "name": "Spring Boot Admin Server",
+      "package": "de.codecentric:spring-boot-admin-starter-server (versionless in this POM; managed by de.codecentric:spring-boot-admin-dependencies BOM, ${spring-boot-admin.version})",
+      "usedIn": ["admin-service/pom.xml:28-31", "admin-service/pom.xml:55-61", "admin-service/src/main/java/pro/algotrade/adminservice/AdminServiceApplication.java:3,7", "admin-service/src/main/java/pro/algotrade/adminservice/WebSecurityConfig.java:3,20-24"],
+      "purpose": "The whole service - SBA server UI + registration API + instance aggregation.",
+      "complianceHint": "Version is inherited from the root pom property ${spring-boot-admin.version}; the brief/Phase 3 record it as 2.7.7. Do not pin a version locally - bump the parent property instead."
+    },
+    {
+      "name": "Spring Boot Admin login UI (legacy)",
+      "package": "de.codecentric:spring-boot-admin-server-ui-login:${spring-boot-admin-ui.version}",
+      "usedIn": ["admin-service/pom.xml:33-37"],
+      "purpose": "Adds a pre-built standalone login page artifact from the SBA 1.x UI line. NO code in this module imports or references it - the only two classes are AdminServiceApplication and WebSecurityConfig, and WebSecurityConfig.java:39 points formLogin at the SBA 2.x server's own /login page.",
+      "complianceHint": "Declared-but-unreferenced dependency, explicitly versioned outside the BOM. Carries a second UI jar alongside the 2.x server UI; candidate for removal after a build check. Brief records the property value as 1.5.7."
+    },
+    {
+      "name": "HashiCorp Consul service discovery",
+      "package": "org.springframework.cloud:spring-cloud-starter-consul-discovery (managed by spring-cloud-dependencies BOM, ${spring-cloud.version})",
+      "usedIn": ["admin-service/pom.xml:18-21,47-53", "admin-service/src/main/resources/application.yml:11-16"],
+      "purpose": "Registers admin-service itself in Consul as service id 'admin-service' (spring.application.name) and puts a DiscoveryClient on the classpath - the only registration mechanism available to the SBA server here.",
+      "complianceHint": "host/port are hardcoded localhost:8500 with no spring.cloud.consul.token (ACL) and no TLS property. register-health-check: false means Consul never health-checks the admin UI."
+    },
+    {
+      "name": "Spring Security (servlet)",
+      "package": "org.springframework.boot:spring-boot-starter-security",
+      "usedIn": ["admin-service/pom.xml:38-41", "admin-service/src/main/java/pro/algotrade/adminservice/WebSecurityConfig.java:16-52"],
+      "purpose": "Protects the SBA UI: form login + HTTP Basic + remember-me + cookie CSRF repository.",
+      "complianceHint": "One in-memory user from committed YAML (see gaps/risk). No roles, no OAuth2/OIDC/LDAP, no session concurrency control."
+    },
+    {
+      "name": "spring-boot-starter-web (Tomcat/MVC)",
+      "package": "org.springframework.boot:spring-boot-starter-web",
+      "usedIn": ["admin-service/pom.xml:23-26"],
+      "purpose": "Servlet container serving the SBA UI on :5555.",
+      "complianceHint": "No server.address set -> binds all interfaces. No spring-boot-starter-actuator and no spring-boot-starter-test dependency in this module."
+    }
+  ],
+  "dependencies": [
+    { "name": "org.springframework.cloud:spring-cloud-starter-consul-discovery", "version": "managed: ${spring-cloud.version} (spring-cloud-dependencies BOM)", "category": "service-discovery" },
+    { "name": "org.springframework.boot:spring-boot-starter-web", "version": "no version in this POM - inherited from the aggregator parent pro.algotrade:algo-trade-platform:1.0 (root pom.xml, out of scope)", "category": "web-runtime" },
+    { "name": "de.codecentric:spring-boot-admin-starter-server", "version": "managed: ${spring-boot-admin.version} (spring-boot-admin-dependencies BOM); Phase 3 records 2.7.7", "category": "observability" },
+    { "name": "de.codecentric:spring-boot-admin-server-ui-login", "version": "${spring-boot-admin-ui.version} (explicit, not BOM-managed); brief records 1.5.7", "category": "observability-ui (unreferenced)" },
+    { "name": "org.springframework.boot:spring-boot-starter-security", "version": "no version in this POM - inherited from the aggregator parent (root pom.xml, out of scope)", "category": "security" },
+    { "name": "org.springframework.boot:spring-boot-maven-plugin", "version": "no version in this POM - inherited from the aggregator parent (root pom.xml, out of scope)", "category": "build-plugin" },
+    { "name": "Maven Wrapper (mvnw, mvnw.cmd, .mvn/wrapper)", "version": "wrapper 3.1.0, distribution apache-maven 3.8.6", "category": "build-tooling" }
+  ],
+  "patterns": [
+    {
+      "name": "Component-based Spring Security config (no WebSecurityConfigurerAdapter)",
+      "evidence": [
+        "admin-service/src/main/java/pro/algotrade/adminservice/WebSecurityConfig.java:16-18 @Configuration @EnableWebSecurity",
+        "admin-service/src/main/java/pro/algotrade/adminservice/WebSecurityConfig.java:26-52 @Bean SecurityFilterChain filterChain(HttpSecurity)",
+        "admin-service/src/main/java/pro/algotrade/adminservice/WebSecurityConfig.java:22-24 constructor injection of AdminServerProperties (no @Autowired field)"
+      ]
+    },
+    {
+      "name": "Canonical Spring Boot Admin security recipe (documentation snippet, copied verbatim)",
+      "evidence": [
+        "permitAll on <contextPath>/assets/** and <contextPath>/login - WebSecurityConfig.java:36-37",
+        "SavedRequestAwareAuthenticationSuccessHandler with setTargetUrlParameter(\"redirectTo\") - WebSecurityConfig.java:29-32",
+        "CSRF ignore triple on POST /instances, DELETE /instances/*, /actuator/** - WebSecurityConfig.java:43-48",
+        "CookieCsrfTokenRepository.withHttpOnlyFalse() - WebSecurityConfig.java:42"
+      ]
+    },
+    {
+      "name": "Context path read from AdminServerProperties rather than hardcoded (prefix spring.boot.admin.server, property context-path; unset here -> empty string, all matchers resolve at root)",
+      "evidence": [
+        "admin-service/src/main/java/pro/algotrade/adminservice/WebSecurityConfig.java:20,32,36-48 - every antMatcher is this.adminServer.getContextPath() + ..."
+      ]
+    },
+    {
+      "name": "Version inheritance from the aggregator pom via ${...} placeholders (no literal versions in this module except the UI-login artifact)",
+      "evidence": [
+        "admin-service/pom.xml:5-9 parent pro.algotrade:algo-trade-platform:1.0",
+        "admin-service/pom.xml:36,50,58 - ${spring-boot-admin-ui.version}, ${spring-cloud.version}, ${spring-boot-admin.version}"
+      ]
+    },
+    {
+      "name": "Discovery-based coupling only - no Feign/RestTemplate/WebClient, no sibling URL, no config-service client",
+      "evidence": [
+        "admin-service/pom.xml:16-43 - 5 dependencies, none is a client/HTTP-caller library",
+        "no spring-cloud-starter-consul-config and no bootstrap.yml -> this module does NOT pull configuration from config-service",
+        "admin-service/src/main/resources/application.yml - the only host:port literals are localhost:8500 (Consul) and the commented http://localhost:5555"
+      ]
+    },
+    {
+      "name": "Commented-out / dead configuration blocks",
+      "evidence": [
+        "admin-service/src/main/resources/application.yml:4-6 management.endpoints.web.exposure.include: \"*\" (commented)",
+        "admin-service/src/main/resources/application.yml:23-35 self-registration block spring.boot.admin.client.url / .username / .password / .instance.metadata.user.* (commented)",
+        "admin-service/src/main/resources/application.yml:41-43 logging.level.org.hibernate.SQL + type.descriptor.sql - no Hibernate/JPA on this module's classpath"
+      ]
+    },
+    {
+      "name": "Per-module Maven Wrapper committed here (wrapper 3.1.0 / Maven 3.8.6)",
+      "evidence": [
+        "admin-service/mvnw, admin-service/mvnw.cmd (188-line standard Apache header)",
+        "admin-service/.mvn/wrapper/maven-wrapper.properties:1-2 distributionUrl apache-maven-3.8.6, wrapperUrl maven-wrapper-3.1.0"
+      ]
+    }
+  ],
+  "infrastructure": {
+    "containers": [
+      {
+        "status": "none",
+        "note": "No Dockerfile / Containerfile / .dockerignore anywhere under admin-service/ (glob of admin-service/** returned 9 files: pom.xml, admin-service.iml, mvnw, mvnw.cmd, .mvn/wrapper/maven-wrapper.{properties,jar}, application.yml, 2 .java files). Phase 3 records Dockerfiles only for person-service and user-service, so this service is run with java -jar / mvn spring-boot:run."
+      }
+    ],
+    "orchestration": [
+      { "status": "none", "note": "No Kubernetes manifests, Helm chart, kustomization or Terraform/OpenTofu file under admin-service/. Instances are addressed exclusively through Consul service discovery (service id = spring.application.name = admin-service)." }
+    ],
+    "pipelines": [
+      { "status": "none", "note": "No pipeline file in this component: no .github/, no .gitlab-ci.yml, no Jenkinsfile, no Azure/GitHub workflow, no build script. Nothing in the module builds, tests, scans or deploys it automatically." }
+    ],
+    "environments": [
+      "default profile ONLY - no spring.profiles.active and no application-<profile>.yml under admin-service/src/main/resources/ (single file: application.yml). No bootstrap.yml.",
+      "server.port: 5555 - verified at admin-service/src/main/resources/application.yml:1-2. Fixed port, unlike person-service/user-service/notification-service, which set server.port: 0 (out-of-scope note from Phase 3).",
+      "No server.address / management.server.address / server.servlet.context-path set -> Tomcat binds 0.0.0.0:5555 and the SBA UI is served at '/'.",
+      "Consul: spring.cloud.consul.host: localhost, spring.cloud.consul.port: 8500 (application.yml:12-14); spring.cloud.consul.discovery.register-health-check: false (application.yml:15-16). No instance-id, hostname, port, tags, scheme or ACL token override -> all Consul discovery defaults.",
+      "spring.application.name: admin-service (application.yml:9) is the Consul service id and the only identity this module publishes.",
+      "Environment NAMES present in this module: none. The tokens dev / prod / staging / test / qa / local do not occur in any file under admin-service/.",
+      "Deploy target is implied, never declared: localhost development machine (Consul on localhost:8500) with a relative log path logs/admin-service.log.",
+      "Build toolchain pinned per-module: Maven 3.8.6 via Maven Wrapper 3.1.0 (admin-service/.mvn/wrapper/maven-wrapper.properties:1-2)."
+    ],
+    "observability": [
+      "@EnableAdminServer on pro.algotrade.adminservice.AdminServiceApplication (AdminServiceApplication.java:7, import line 3 de.codecentric.boot.admin.server.config.EnableAdminServer) - the only annotation on the class besides @SpringBootApplication.",
+      "Server dependency: de.codecentric:spring-boot-admin-starter-server, versionless in admin-service/pom.xml:28-31, managed by the spring-boot-admin-dependencies BOM import at pom.xml:55-61 keyed on ${spring-boot-admin.version}.",
+      "de.codecentric:spring-boot-admin-server-ui-login:${spring-boot-admin-ui.version} (pom.xml:33-37) - the SBA 1.x standalone login-page jar. NOT wired: no class in this module references it and formLogin uses the SBA 2.x built-in /login (WebSecurityConfig.java:39). Verdict: declared-but-unwired, likely 1.x-era residue.",
+      "Security gate on the UI: WebSecurityConfig.java:35-49 - permitAll for <ctx>/assets/** and <ctx>/login; anyRequest().authenticated(); formLogin(loginPage <ctx>/login, redirectTo param) + logout <ctx>/logout + httpBasic + CSRF(CookieCsrfTokenRepository.withHttpOnlyFalse, ignoring POST /instances, DELETE /instances/*, /actuator/**) + rememberMe(key=UUID.randomUUID(), 60s).",
+      "Session model: default servlet container HTTP session. No sessionManagement(), no maximumSessions, no session fixation protection override, no OAuth2 resource-server config, no CORS configuration anywhere in the module.",
+      "Registration model assumed by THIS module: discovery-based via Consul. It sets zero active spring.boot.admin.* property - the only spring.boot.admin.client.* keys present (url/username/password/instance.metadata.user.*) are commented out at application.yml:24-35, so admin-service does not self-register and holds NO credentials for protected instances. Property names actually read: server.port, spring.application.name, spring.cloud.consul.host, spring.cloud.consul.port, spring.cloud.consul.discovery.register-health-check, spring.security.user.name, spring.security.user.password, logging.*, plus spring.boot.admin.server.context-path consumed implicitly through the injected AdminServerProperties (WebSecurityConfig.java:20).",
+      "Actuator: this module consumes NO actuator endpoint of its own - spring-boot-starter-actuator is absent from admin-service/pom.xml, and the only management.* key (management.endpoints.web.exposure.include: \"*\") is commented out (application.yml:4-6). The endpoint set the SBA UI calls is a spring-boot-admin-starter-server library default, not configured here; the only module-level actuator artefact is the inert CSRF exemption for /actuator/** (WebSecurityConfig.java:48).",
+      "Logging: logging.file.name logs/admin-service.log (application.yml:39-40) - relative to the process CWD, plain-text, no pattern/layout or JSON encoder configured; rolling policy logback.rollingpolicy.max-file-size 10Mb, max-history 7 (application.yml:44-47); levels logging.level.org.hibernate.SQL debug and logging.level.org.hibernate.type.descriptor.sql trace (application.yml:41-43) - dead settings, no Hibernate in this module's dependency list.",
+      "Consul registration has NO health check (register-health-check: false, application.yml:16), so a crashed admin-service stays registered; and with no actuator dependency Consul has nothing to poll even if it were enabled."
+    ]
+  },
+  "crossComponentDependencies": [
+    {
+      "targetPath": ".",
+      "via": "admin-service/pom.xml:5-9",
+      "note": "Maven parent pro.algotrade:algo-trade-platform:1.0 (aggregator pom.xml). Supplies java.version, ${spring-cloud.version}, ${spring-boot-admin.version}, ${spring-boot-admin-ui.version} and spring-boot-starter-parent dependency management. Not followed - outside scope."
+    },
+    {
+      "targetPath": "runtime:consul-localhost:8500",
+      "via": "admin-service/src/main/resources/application.yml:11-16",
+      "note": "No sibling module is named, imported or URL-referenced anywhere in admin-service. Coupling is name-agnostic: any service that Consul knows about can appear in the UI. Sibling modules' own spring.boot.admin.client.url values are outside scope."
+    }
+  ],
+  "gaps": [
+    "${spring-boot-admin.version} and ${spring-boot-admin-ui.version} are resolved in the root pom.xml <properties>, which is outside this brief's scope; the values 2.7.7 / 1.5.7 used above come from the dispatch brief and Phase 3 notes, not from a file read here.",
+    "The concrete actuator endpoints each registered service exposes cannot be determined from admin-service - it declares no management.* keys of its own and sibling resource configuration is out of scope.",
+    "Whether sibling services push themselves to this UI through spring.boot.admin.client.url, or are only discovered through Consul, is decided entirely outside admin-service and was not read.",
+    "The runtime effect of putting spring-boot-admin-server-ui-login (1.x jar) on the same classpath as the 2.x SBA server UI cannot be verified without a build - this analysis is read-only and no Maven execution is permitted.",
+    "Whether :5555 is reachable beyond localhost in practice (reverse proxy, firewall, Docker network, ingress) is not expressible in this module - it has no container, orchestration or pipeline definition - so exposure is judged from configuration alone.",
+    "admin-service/mvnw (POSIX shell) and .mvn/wrapper/maven-wrapper.jar (binary) were not opened; the wrapper version comes from .mvn/wrapper/maven-wrapper.properties and mvnw.cmd's standard Apache header."
+  ],
+  "recommendations": [
+    "Externalise spring.security.user.name / spring.security.user.password (application.yml:20-21) - they are plaintext literals in a committed file - and rotate them; source them from an env var or Consul KV.",
+    "Set server.address: 127.0.0.1 (or keep :5555 on a private network) unless the admin UI is deliberately reachable beyond the developer machine - nothing in this module restricts the bind address today.",
+    "Remove de.codecentric:spring-boot-admin-server-ui-login from pom.xml:33-37 after a build check - it is unreferenced by any class in this module.",
+    "Delete the two org.hibernate logging levels (application.yml:41-43) or move them to a non-default profile - they do nothing here and would emit SQL with bound parameters if a JPA starter were ever added.",
+    "Add spring-boot-starter-actuator and an explicit management.endpoints.web.exposure.include allowlist if admin-service should monitor itself, then re-enable the commented client block (application.yml:24-35); otherwise document that the monitoring plane is deliberately unmonitored.",
+    "Fix WebSecurityConfig.java:49 - rememberMe key UUID.randomUUID() invalidates every remember-me token on restart and tokenValiditySeconds(60) makes it useless; either set a stable key with a sane TTL or drop rememberMe.",
+    "Set spring.cloud.consul.discovery.register-health-check: true (application.yml:16) once actuator is present, so Consul can evict a dead admin UI.",
+    "Parameterise Consul host/port as ${CONSUL_HOST:localhost} / ${CONSUL_PORT:8500} and add a profile scheme - the module currently has exactly one environment (default)."
+  ]
+}

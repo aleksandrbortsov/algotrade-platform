@@ -1,0 +1,229 @@
+{
+  "schemaVersion": 1,
+  "component": "auth-service",
+  "path": "auth-service",
+  "kind": "backend",
+  "languages": ["Java"],
+  "coverage": "full",
+  "filesRead": 19,
+  "generatedAt": "2026-11-10T12:00:00Z",
+  "entryPoints": [
+    {
+      "path": "auth-service/src/main/java/pro/algotrade/authservice/AuthServiceApplication.java",
+      "purpose": "Only @SpringBootApplication (line 6) and only main(); starts on server.port 9000 (application.yml:1-2). Sole active composition root - component scan of pro.algotrade.authservice is the whole wiring."
+    },
+    {
+      "path": "auth-service/src/main/java/pro/algotrade/authservice/SecurityConfig.java",
+      "purpose": "@Configuration COMMENTED OUT at line 30; class body 100% commented (lines 32-76). Registers nothing."
+    },
+    {
+      "path": "auth-service/src/main/java/pro/algotrade/authservice/config/DefaultSecurityConfig.java",
+      "purpose": "@EnableWebSecurity and @Configuration COMMENTED OUT at lines 15-16; body commented (19-34). Registers nothing."
+    },
+    {
+      "path": "auth-service/src/main/java/pro/algotrade/authservice/config/AuthorizationServerConfig.java",
+      "purpose": "@Configuration(proxyBeanMethods=false) COMMENTED OUT at line 41; all 7 beans commented (44-127). The Spring Authorization Server is NOT wired at runtime."
+    },
+    {
+      "path": "auth-service/src/main/java/pro/algotrade/authservice/util/PasswordConfig.java",
+      "purpose": "@Configuration COMMENTED OUT at line 8; passwordEncoder() bean commented (11-14)."
+    }
+  ],
+  "architecture": {
+    "pattern": "Planned OAuth2 authorization server, currently a non-functional skeleton: 1 @SpringBootApplication + 2 @RestController + 1 @Service are live; all 4 @Configuration classes and every security/JPA/JWT-signing bean are commented out. No SecurityFilterChain, no RegisteredClientRepository, no JWKSource, no persistence exists at runtime.",
+    "evidence": [
+      "auth-service/pom.xml:24-28 - spring-security-oauth2-authorization-server 1.0.0 dependency is entirely commented out; artifact is never resolved",
+      "auth-service/pom.xml:36-39 - spring-boot-starter-security commented out; no Spring Security on the compile classpath (root pom.xml has no <dependencies> block at all)",
+      "auth-service/src/main/java/pro/algotrade/authservice/config/AuthorizationServerConfig.java:47 - commented OAuth2AuthorizationServerConfiguration.applyDefaultSecurity(http); :50 commented OAuth2AuthorizationServerConfigurer; :62-84 commented JdbcRegisteredClientRepository; :99-103 commented JWKSource; :106-108 commented JwtDecoder; :116-127 commented H2 EmbeddedDatabase with the 3 SAS schema scripts",
+      "auth-service/src/main/java/pro/algotrade/authservice/SecurityConfig.java:39-53 - the only SecurityFilterChain draft (csrf disable, stateless, oauth2ResourceServer jwt, BearerTokenAuthenticationEntryPoint) is commented",
+      "No @Entity, no Spring Data repository, no @EnableWebSecurity anywhere in the module",
+      "auth-service/src/main/java/pro/algotrade/authservice/controller/AuthController.java:34 - login() returns the literal string \"token\"; the jwtUtil.generateToken call is commented at line 32"
+    ]
+  },
+  "businessModules": [
+    {
+      "name": "OAuth2 authorization-server wiring (inert)",
+      "path": "auth-service/src/main/java/pro/algotrade/authservice/config",
+      "purpose": "Was to host the SAS 1.0.x SecurityFilterChain, JdbcRegisteredClientRepository, JdbcOAuth2AuthorizationService, JdbcOAuth2AuthorizationConsentService, JWKSource, JwtDecoder, AuthorizationServerSettings and an H2 EmbeddedDatabase. 2 files, 165 lines, ~111 of them commented; zero active beans."
+    },
+    {
+      "name": "JWT signing/verification utilities (inert)",
+      "path": "auth-service/src/main/java/pro/algotrade/authservice/util",
+      "purpose": "JwtUtils (HMAC-SHA512 issue/validate), Jwks + KeyGeneratorUtils (RSA-2048 keypair -> Nimbus RSAKey), PasswordConfig (BCrypt). 4 files, 124 lines; every method body commented, so nothing signs or verifies anything."
+    },
+    {
+      "name": "Login and register REST facade",
+      "path": "auth-service/src/main/java/pro/algotrade/authservice/controller",
+      "purpose": "AuthController POST /auth/login and POST /auth/auth/register; InternalController GET /internal/userdetails returns null. Password check commented (AuthController.java:28-30)."
+    },
+    {
+      "name": "Remote principal lookup through the edge gateway",
+      "path": "auth-service/src/main/java/pro/algotrade/authservice/service/UserDtoService.java",
+      "purpose": "Intended RestTemplate GET to http://localhost:3535/internal/userdetails (hardcoded, gateway-service port). RestTemplate field commented at line 21 and the exchange commented at 29-32; method always returns null (line 37)."
+    },
+    {
+      "name": "Login request payload contract",
+      "path": "auth-service/src/main/java/pro/algotrade/authservice/dto/UserDetailsDto.java",
+      "purpose": "Lombok @Data DTO with exactly two String fields: username, password. Only cross-service data type in the module."
+    },
+    {
+      "name": "JWT failure exception hierarchy",
+      "path": "auth-service/src/main/java/pro/algotrade/authservice/exception",
+      "purpose": "JwtTokenMalformedException and JwtTokenMissingException, both extending the JDK JNDI javax.naming.AuthenticationException rather than Spring Security's AuthenticationException. Never thrown - the only throw sites are commented out in JwtUtils.java:52-60."
+    }
+  ],
+  "entities": [
+    {
+      "name": "UserDetailsDto",
+      "path": "auth-service/src/main/java/pro/algotrade/authservice/dto/UserDetailsDto.java",
+      "relations": ["consumed by AuthController.login(@RequestBody)", "returned (always null) by UserDtoService.getUserDto"]
+    },
+    {
+      "name": "No JPA @Entity exists in this module",
+      "path": "auth-service/src/main/java/pro/algotrade/authservice",
+      "relations": ["spring-boot-starter-data-jpa commented at pom.xml:51-54", "mysql-connector-j commented at pom.xml:56-60", "OAuth2 registered-client / authorization / consent tables exist only in commented code (AuthorizationServerConfig.java:62-127)"]
+    }
+  ],
+  "endpointGroups": [
+    {
+      "pathPattern": "/auth/login",
+      "methods": ["POST"],
+      "count": 1,
+      "version": "none",
+      "auth": "none - no SecurityFilterChain is registered, so every request is unauthenticated; body is UserDetailsDto{username,password}, response is the literal string \"token\"",
+      "sourceFile": "auth-service/src/main/java/pro/algotrade/authservice/controller/AuthController.java"
+    },
+    {
+      "pathPattern": "/auth/auth/register",
+      "methods": ["POST"],
+      "count": 1,
+      "version": "none",
+      "auth": "none - unauthenticated user self-registration endpoint; body is a raw String, response \"Registered\", no persistence (AuthController.java:39-42 prints to stdout)",
+      "sourceFile": "auth-service/src/main/java/pro/algotrade/authservice/controller/AuthController.java"
+    },
+    {
+      "pathPattern": "/internal/userdetails",
+      "methods": ["GET"],
+      "count": 1,
+      "version": "none",
+      "auth": "none - intended to be an internal endpoint; returns literal null (InternalController.java:16)",
+      "sourceFile": "auth-service/src/main/java/pro/algotrade/authservice/controller/InternalController.java"
+    },
+    {
+      "pathPattern": "/oauth2/authorize | /oauth2/token | /oauth2/jwks | /oauth2/revoke | /oauth2/introspect | /connect/token | /connect/register | /.well-known/openid-configuration | /oauth2/consent",
+      "methods": [],
+      "count": 0,
+      "version": "none",
+      "auth": "NOT REGISTERED - Spring Authorization Server endpoints do not exist at runtime; the bean that would create them is commented at AuthorizationServerConfig.java:41-127 and the dependency is commented at pom.xml:24-28",
+      "sourceFile": "auth-service/src/main/java/pro/algotrade/authservice/config/AuthorizationServerConfig.java"
+    }
+  ],
+  "integrations": [
+    {
+      "name": "Consul service discovery",
+      "package": "org.springframework.cloud:spring-cloud-starter-consul-discovery (import org.springframework.cloud:spring-cloud-dependencies ${spring-cloud.version}=2021.0.5)",
+      "usedIn": ["auth-service/pom.xml:46-49", "auth-service/src/main/resources/application.yml:12-17"],
+      "purpose": "Registers service-id 'auth-service' with Consul at localhost:8500; register-health-check: false. This is the only live infrastructure dependency.",
+      "complianceHint": "No spring.cloud.config client and no spring-cloud-starter-consul-config in this pom, so config-service is NOT a runtime dependency of this module (verified: no auth*.yml exists under config-service resources)."
+    },
+    {
+      "name": "JJWT (single-artifact, deprecated API)",
+      "package": "io.jsonwebtoken:jjwt:0.9.1",
+      "usedIn": ["auth-service/pom.xml:31-34", "auth-service/src/main/java/pro/algotrade/authservice/util/JwtUtils.java:9-15"],
+      "purpose": "The only JWT library actually on the classpath. Imports are live (Claims, Jwts, SignatureAlgorithm, SignatureException) but all four methods that call them are commented (JwtUtils.java:30-62), so it signs nothing and verifies nothing today.",
+      "complianceHint": "jjwt 0.9.1 predates the api/impl split and uses the deprecated Jwts.parser().setSigningKey(String) HMAC path; if re-enabled it would be the sole signer (HS512) and sole verifier."
+    },
+    {
+      "name": "MySQL / JDBC persistence (declared-but-disabled)",
+      "package": "com.mysql:mysql-connector-j + org.springframework.boot:spring-boot-starter-data-jpa",
+      "usedIn": ["auth-service/pom.xml:51-60 (both commented out)"],
+      "purpose": "Intended store for the SAS oauth2_registered_client / oauth2_authorization / oauth2_authorization_consent tables; in the commented design the schema is created on an in-memory H2 EmbeddedDatabase, not MySQL (AuthorizationServerConfig.java:116-127).",
+      "complianceHint": "No spring.datasource, no dialect, no ddl-auto and no Flyway/Liquibase anywhere in this module - correcting development.md, which lists auth-service as a JPA+MySQL service."
+    },
+    {
+      "name": "Spring Boot Admin client",
+      "package": "de.codecentric:spring-boot-admin-starter-client:${spring-boot-admin.version}=2.7.7",
+      "usedIn": ["auth-service/pom.xml:18-22"],
+      "purpose": "Declared and active on the classpath, but INERT: application.yml defines no spring.boot.admin.client.url, so there is nothing for the client to report to.",
+      "complianceHint": "Actuator auto-configuration arrives transitively; exposure is Spring Boot default (health, info over HTTP) because no management.endpoints.web.exposure.include is set here - unlike config-service, which sets '*'."
+    },
+    {
+      "name": "Nimbus JOSE / JWK (declared-but-unused)",
+      "package": "com.nimbusds.jose.jwk (RSAKey, JWKSet, ImmutableJWKSet, JWKSource) - transitive of the commented SAS dependency, never a direct dependency",
+      "usedIn": ["auth-service/src/main/java/pro/algotrade/authservice/SecurityConfig.java:3-8 (commented)", "auth-service/src/main/java/pro/algotrade/authservice/util/Jwks.java:3 (commented)", "auth-service/src/main/java/pro/algotrade/authservice/config/AuthorizationServerConfig.java:5-8 (commented)"],
+      "purpose": "Was to supply the RSA JWK source for RS256 tokens and the /oauth2/jwks set.",
+      "complianceHint": "Every reference is commented; the package is not resolvable from this pom, so re-enabling requires re-adding spring-security-oauth2-authorization-server."
+    },
+    {
+      "name": "Spring Security crypto (BCrypt)",
+      "package": "org.springframework.security:spring-security-crypto (BCryptPasswordEncoder, PasswordEncoder)",
+      "usedIn": ["auth-service/src/main/java/pro/algotrade/authservice/util/PasswordConfig.java:5-6 (LIVE imports)"],
+      "purpose": "Intended password hashing bean for AuthController's commented credentials check (AuthController.java:28-30).",
+      "complianceHint": "BLOCKING: these two imports are uncommented while spring-boot-starter-security is commented (pom.xml:36-39) and the root pom adds no global dependencies - the module should fail to compile. Not confirmed by a build; the bash budget is read-only."
+    },
+    {
+      "name": "SMTP / mail",
+      "package": "none",
+      "usedIn": [],
+      "purpose": "not found in this module.",
+      "complianceHint": "n/a"
+    }
+  ],
+  "dependencies": [
+    {"name": "org.springframework.boot:spring-boot-starter-parent (inherited)", "version": "2.7.5", "category": "framework parent - root pom.xml:7-12"},
+    {"name": "de.codecentric:spring-boot-admin-starter-client", "version": "2.7.7", "category": "observability - ACTIVE, inert (no client.url)"},
+    {"name": "io.jsonwebtoken:jjwt", "version": "0.9.1", "category": "jwt - ACTIVE on classpath, imports live, zero executable use"},
+    {"name": "org.springframework.boot:spring-boot-starter-web", "version": "2.7.5 (managed)", "category": "http - ACTIVE, supplies both @RestController and RestTemplate"},
+    {"name": "org.springframework.cloud:spring-cloud-starter-consul-discovery", "version": "2021.0.5 BOM", "category": "discovery - ACTIVE"},
+    {"name": "org.springframework.boot:spring-boot-starter-test", "version": "2.7.5 (managed)", "category": "test - ACTIVE, but 0 executable tests"},
+    {"name": "org.projectlombok:lombok", "version": "1.18.24", "category": "build/codegen - ACTIVE (@Data, @RequiredArgsConstructor, @Log4j2)"},
+    {"name": "org.springframework.security:spring-security-oauth2-authorization-server", "version": "1.0.0", "category": "COMPILED OUT - pom.xml:24-28"},
+    {"name": "org.springframework.boot:spring-boot-starter-security", "version": "2.7.5", "category": "COMPILED OUT - pom.xml:36-39 (yet imported live by PasswordConfig.java:5-6)"},
+    {"name": "org.springframework.boot:spring-boot-starter-data-jpa", "version": "2.7.5", "category": "COMPILED OUT - pom.xml:51-54"},
+    {"name": "com.mysql:mysql-connector-j", "version": "managed", "category": "COMPILED OUT - pom.xml:56-60"},
+    {"name": "io.jsonwebtoken:jjwt-api", "version": "${jsonwebtoken.version}=0.11.5 (root pom.xml:39)", "category": "COMPILED OUT - pom.xml:75-79"},
+    {"name": "io.jsonwebtoken:jjwt-impl", "version": "comment reads ${jsonwebtoken.version}=0.11.5", "category": "COMPILED OUT - pom.xml:80-85 (development.md's '0.11.2 pinned independently' is wrong for this module)"},
+    {"name": "io.jsonwebtoken:jjwt-jackson", "version": "0.11.2 (commented)", "category": "COMPILED OUT - pom.xml:86-91"},
+    {"name": "org.apache.maven.plugins:maven-compiler-plugin", "version": "3.8.1, source/target 10", "category": "build - CONFLICTS with root <java.version>17</java.version>"},
+    {"name": "org.mapstruct:mapstruct-processor", "version": "1.5.3.Final", "category": "annotation processor only - no mapstruct runtime dependency and no @Mapper in this module"},
+    {"name": "org.apache.maven.wrapper (mvnw, mvnw.cmd, .mvn/wrapper/)", "version": "committed", "category": "build - contradicts development.md's 'no Maven wrapper is committed'"}
+  ],
+  "patterns": [
+    {"name": "Whole-feature comment-out instead of deletion or feature flag", "evidence": ["~260 of ~425 main-source lines (about 61%) are commented", "auth-service/pom.xml - 6 of 15 dependency blocks commented (lines 24-28, 36-39, 51-54, 56-60, 75-91)", "5 of 5 configuration classes keep a live class shell with a commented @Configuration annotation"]},
+    {"name": "HMAC-SHA512 symmetric token minting (commented design)", "evidence": ["auth-service/src/main/java/pro/algotrade/authservice/util/JwtUtils.java:44-45 - Jwts.builder().setClaims(claims).setIssuedAt(..).setExpiration(..).signWith(SignatureAlgorithm.HS512, jwtSecret)", "auth-service/src/main/java/pro/algotrade/authservice/util/JwtUtils.java:32 and :50 - Jwts.parser().setSigningKey(jwtSecret) for both getClaims() and validateToken()"]},
+    {"name": "RSA-2048 asymmetric keypair generation for a Nimbus JWKSource (commented design)", "evidence": ["auth-service/src/main/java/pro/algotrade/authservice/util/KeyGeneratorUtils.java:10-20 - KeyPairGenerator.getInstance(\"RSA\").initialize(2048)", "auth-service/src/main/java/pro/algotrade/authservice/util/Jwks.java:14-23 - new RSAKey.Builder(publicKey).privateKey(privateKey).keyID(UUID.randomUUID().toString())"]},
+    {"name": "Two parallel, mutually exclusive token mechanisms in the same module", "evidence": ["Mechanism A: jjwt HS512 keyed by jwt.secret (JwtUtils.java:23-27,45) fed by application.yml:20-23", "Mechanism B: Spring Authorization Server with an RSA JWKSource and /oauth2/token (AuthorizationServerConfig.java:99-108)", "They are never active together - both are commented - so no runtime conflict exists today, but re-enabling both would mint two incompatible token formats from one service"]},
+    {"name": "No MapStruct mapping at all despite the processor being configured", "evidence": ["auth-service/pom.xml:127-131 registers mapstruct-processor as an annotation processor", "0 @Mapper classes and no org.mapstruct dependency in this module; the only DTO is hand-built by Lombok @Data (dto/UserDetailsDto.java:5-8)"]},
+    {"name": "Lombok constructor injection", "evidence": ["controller/AuthController.java:17 @RequiredArgsConstructor over the single final UserDtoService field (line 20)", "service/UserDtoService.java:15 @RequiredArgsConstructor with zero final fields (the RestTemplate field is commented at line 21)"]},
+    {"name": "No @ControllerAdvice / @ExceptionHandler / ErrorController anywhere", "evidence": ["auth-service/src/main/java/pro/algotrade/authservice/exception - 2 exception classes, neither thrown nor handled", "JwtUtils.java:48 declares 'throws JwtTokenMalformedException, JwtTokenMissingException' but is itself commented"]},
+    {"name": "Lombok @Log4j2 on a Logback runtime", "evidence": ["service/UserDtoService.java:16 @Log4j2 (ACTIVE) with log.info at line 35", "application.yml configures no logging backend; Boot's default logback-classic stays in force, so the Log4j2 API call is bridged via log4j-to-slf4j", "util/JwtUtils.java:21 @Log4j2 is commented out"]},
+    {"name": "Hardcoded upstream URL bypassing Consul discovery", "evidence": ["service/UserDtoService.java:18-19 - API_GATEWAY_URL = \"http://localhost:3535\" and API_USERSDETAILS_URL = \"/internal/userdetails\"", "the module registers itself with Consul yet calls out through a literal localhost:port instead of a load-balanced http://gateway-service URI"]},
+    {"name": "Authored-in-a-different-module leftover", "evidence": ["auth-service/src/test/java/pro/algotrade/internalgateway/HelloControllerTests.java:1 - package pro.algotrade.internalgateway, and the @WebMvcTest at line 18 names HelloController, TokenController and RestConfig, none of which exist in this module", "artifactId is 'auth-server' (pom.xml:11) while the directory is auth-service and spring.application.name is auth-service (application.yml:6)"]}
+  ],
+  "crossComponentDependencies": [
+    {"targetPath": "gateway-service", "via": "RestTemplate GET to the hardcoded http://localhost:3535/internal/userdetails with an 'Authorization: Service $serviceToken' header placeholder (service/UserDtoService.java:18-19,26-32) - the RestTemplate field and the exchange call are both commented, so no request is ever issued today; not OpenFeign, not WebClient"},
+    {"targetPath": "person-service", "via": "ultimate source of the principal data behind that gateway call - the only evidence in this module is the log text 'User from person-service' (service/UserDtoService.java:35)"},
+    {"targetPath": "config-service", "via": "NO dependency found - no spring-cloud-config client dependency in auth-service/pom.xml, and a filename search for auth*.yml under config-service/src/main/resources returned nothing, so this module is configured solely by its own application.yml"},
+    {"targetPath": "admin-service", "via": "spring-boot-admin-starter-client (pom.xml:18-22) with no spring.boot.admin.client.url set - registration target unconfigured"}
+  ],
+  "gaps": [
+    "Build not executed: the bash permission allows only read-only inspection, so 'mvn -pl auth-service test-compile' could not be run. The conclusion that PasswordConfig.java:5-6 cannot compile without spring-security-crypto is static-analysis-only, inferred from pom.xml:36-39 plus the absence of any <dependencies> block in the root pom.xml.",
+    "Contents of auth-service/src/main/resources/app.key (1734 bytes) and app.pub (458 bytes) were deliberately NOT read, per the secret-handling rule. Their PEM header/algorithm could not be stated; sizes are consistent with a 2048-bit RSA keypair but unverified.",
+    "No artifact in this repository resolves whether the commented spring-security-oauth2-authorization-server 1.0.0 would in fact fail against Boot 2.7.5 - the deciding evidence would be a dependency tree (mvn -pl auth-service dependency:tree) with the block uncommented, or the SAS 1.0.0 POM's own spring-security version constraint.",
+    "Whether gateway-service actually forwards /auth/login and /internal/userdetails to this service was not checked - gateway-service is out of scope.",
+    "auth-server.iml (210 bytes) and .mvn/wrapper/maven-wrapper.properties were listed but not opened; IDE-side run configuration and wrapper version are therefore unknown.",
+    "Which service, if any, is expected to persist registered OAuth2 clients is undetermined - the commented design used a throwaway H2 EmbeddedDatabase (AuthorizationServerConfig.java:116-127), which contradicts the platform's database-per-service rule."
+  ],
+  "recommendations": [
+    "Treat auth-service as NOT YET IMPLEMENTED in every downstream Phase 6 output. It issues no tokens: AuthController.java:34 returns the literal string \"token\". Any documented claim that the platform has OAuth2/JWT authentication is currently false at the auth-service end.",
+    "Decide one token mechanism before writing any code. Mechanism A (jjwt HS512 + jwt.secret, shared symmetric key with gateway-service) and Mechanism B (Spring Authorization Server + RSA JWKSource + /oauth2/jwks) are both scaffolded and both dead; keeping both scaffoldings guarantees a future split-brain.",
+    "Do NOT re-enable spring-security-oauth2-authorization-server 1.0.0 on Boot 2.7.5. Verify with 'mvn -pl auth-service dependency:tree -Dincludes=*oauth2-authorization-server*' after uncommenting pom.xml:24-28; the 1.0.x line targets Spring Security 6 / Boot 3 (jakarta.*), while every live import in this module is javax.* - see research question (a).",
+    "Fix the immediate compile break first: either restore spring-boot-starter-security (pom.xml:36-39) or delete the live imports at util/PasswordConfig.java:5-6. Everything else is blocked behind it.",
+    "Align the compiler level. maven-compiler-plugin source/target 10 (pom.xml:119-120) contradicts root <java.version>17</java.version>; the code currently uses only Java-10 features (var in AuthController.java:26,32 and the diamond anonymous class in UserDtoService.java:31), so this is a deliberate legacy pin, not an accident.",
+    "Delete dead code rather than commenting it out, and drop the mapstruct-processor annotation path (pom.xml:127-131) until a real @Mapper exists.",
+    "Rotate and externalise the credential at application.yml:21 (jwt.secret default value - not copied here) before this repo is shared further; the file itself already carries the 'should be encrypted' warning at line 19.",
+    "Replace the hardcoded http://localhost:3535 in UserDtoService.java:18 with a Consul-resolved http://gateway-service URI when the call is restored, and give the service an @ConfigurationProperties or RestTemplate bean plus a real @LoadBalanced RestTemplate - the RestTemplate bean it needs does not exist in this module.",
+    "Add Spring Security's AuthenticationException (or a domain exception) to the two classes in exception/ - extending javax.naming.AuthenticationException (JNDI) is a tutorial artifact, not an intentional choice.",
+    "Rename artifactId 'auth-server' (pom.xml:11) and auth-server.iml to match the module directory and spring.application.name 'auth-service', and move HelloControllerTests.java out of the pro.algotrade.internalgateway package."
+  ]
+}

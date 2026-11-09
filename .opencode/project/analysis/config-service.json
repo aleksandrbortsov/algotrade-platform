@@ -1,0 +1,244 @@
+{
+  "schemaVersion": 1,
+  "component": "config-service",
+  "path": "config-service",
+  "kind": "infra",
+  "languages": ["Java", "YAML"],
+  "coverage": "partial",
+  "filesRead": 11,
+  "generatedAt": "2026-11-10T00:00:00Z",
+  "entryPoints": [
+    { "path": "config-service/src/main/java/pro/algotrade/configservice/ConfigServiceApplication.java", "purpose": "Only production class (15 lines): @SpringBootApplication + @EnableConfigServer. No controller, no security config." },
+    { "path": "config-service/src/main/resources/application.yml", "purpose": "Server's own config: port 8888, log file + rolling policy, actuator exposure '*', spring.profiles.active: native, Consul localhost:8500, commented git block." },
+    { "path": "config-service/src/main/resources/config/", "purpose": "Served artefact root: gateway-service.yml, notification-service.yml, person-service.yml, user-service.yml. Default native location classpath:/config/ is not overridden." },
+    { "path": "config-service/pom.xml", "purpose": "Maven module (parent pro.algotrade:algo-trade-platform:1.0); 4 dependencies; spring-boot-maven-plugin only; no CI." }
+  ],
+  "architecture": {
+    "pattern": "Centralised configuration delivery: one Spring Cloud Config Server (native/classpath backend, :8888) registered in Consul, serving 4 checked-in YAML documents that live inside this repository. No git backend active.",
+    "evidence": [
+      "ConfigServiceApplication.java:5-8 — @EnableConfigServer is the only framework annotation",
+      "application.yml:17-24 — spring.profiles.active: native, spring.application.name: config-service",
+      "application.yml:1-2 — server.port: 8888",
+      "config/ — 4 documents named after consumer spring.application.name, no profile suffix",
+      "config-service/logs/config-service.log:2 — 'The following 1 profile is active: \"native\"' at runtime",
+      "application.yml:36-98 — entire spring.cloud.config.server.git block commented out"
+    ]
+  },
+  "businessModules": [
+    { "name": "Configuration delivery plane", "path": "config-service/src/main/resources/config", "purpose": "Runtime configuration of 4 siblings: ports, Consul registration, datasources, JPA, actuator exposure, Spring Boot Admin URL, logging, mail, JWT." },
+    { "name": "Config server runtime", "path": "config-service/src/main/java/pro/algotrade/configservice", "purpose": "1-class Boot app exposing the Spring Cloud Config HTTP resource API; no logic, no persistence, no security." }
+  ],
+  "entities": [],
+  "endpointGroups": [
+    {
+      "pathPattern": "/{application}[/{label}][/{profiles}][/{searchPath}][.{ext}] — Spring Cloud Config resource API family (6 mapping variants)",
+      "methods": ["GET"],
+      "count": 6,
+      "version": "unversioned; no /api or /v1 prefix in this module",
+      "auth": "none — no spring-boot-starter-security in pom.xml, no security property in application.yml",
+      "sourceFile": "config-service/src/main/java/pro/algotrade/configservice/ConfigServiceApplication.java:8"
+    },
+    {
+      "pathPattern": "/actuator endpoints — management.endpoints.web.exposure.include \"*\", no base-path override",
+      "methods": ["GET"],
+      "count": 0,
+      "version": "actuator default",
+      "auth": "none",
+      "sourceFile": "config-service/src/main/resources/application.yml:13-15"
+    }
+  ],
+  "integrations": [
+    {
+      "name": "Spring Cloud Config Server",
+      "package": "org.springframework.cloud:spring-cloud-config-server (version via spring-cloud-dependencies ${spring-cloud.version})",
+      "usedIn": ["config-service/pom.xml:24-27", "ConfigServiceApplication.java:5,8"],
+      "purpose": "Serves configuration over HTTP to the other services.",
+      "complianceHint": "Unauthenticated as committed: anything reaching :8888 reads every credential below."
+    },
+    {
+      "name": "HashiCorp Consul (discovery)",
+      "package": "org.springframework.cloud:spring-cloud-starter-consul-discovery; resolved jars from committed log: spring-cloud-consul-discovery-3.1.2, consul-api-1.4.5",
+      "usedIn": ["config-service/pom.xml:29-32", "application.yml:26-31", "config/gateway-service.yml:28-34", "config/person-service.yml:35-42", "config/user-service.yml:42-48", "config/notification-service.yml:28-34"],
+      "purpose": "Registers config-service; assumed discovery mechanism for every consumer.",
+      "complianceHint": "localhost:8500 hardcoded in all 5 files, no env placeholder; register-health-check: false everywhere — Consul holds no health verdict for the fleet."
+    },
+    {
+      "name": "Spring Boot Admin (client)",
+      "package": "de.codecentric:spring-boot-admin-starter-client ${spring-boot-admin.version}",
+      "usedIn": ["config-service/pom.xml:18-22", "application.yml:18-19", "config/gateway-service.yml:19-22", "config/notification-service.yml:20-23", "config/person-service.yml:22-25", "config/user-service.yml:21-25"],
+      "purpose": "Reports services to the admin UI at ${ADMIN_SERVER:http://localhost:5555/}.",
+      "complianceHint": "Server file sets credentials but no url; delivered files set url only, credentials commented (user-service.yml:26-32)."
+    },
+    {
+      "name": "MySQL (delivered, not consumed here)",
+      "package": "delivered spring.datasource.* — driver com.mysql.cj.jdbc.Driver",
+      "usedIn": ["config/person-service.yml:44-48", "config/user-service.yml:51-55"],
+      "purpose": "person-service gets jdbc:mysql://localhost:3306/persons_schema; user-service gets jdbc:mysql://localhost:3307/users_schema.",
+      "complianceHint": "Plaintext credential literals in both; two MySQL endpoints (3306, 3307) with no compose file to provide either."
+    },
+    {
+      "name": "SMTP / Gmail (delivered)",
+      "package": "delivered spring.mail.* — smtp.gmail.com:587, STARTTLS",
+      "usedIn": ["config/notification-service.yml:36-56"],
+      "purpose": "Outbound mail settings for notification-service; the only non-MySQL integration delivered.",
+      "complianceHint": "Plaintext password (notification-service.yml:40) and account address (:39); all SMTP timeouts commented out."
+    },
+    {
+      "name": "GitHub config repo over SSH (DECLARED, INACTIVE)",
+      "package": "config-server git backend — fully commented",
+      "usedIn": ["config-service/src/main/resources/application.yml:36-98"],
+      "purpose": "Was to serve config from git@github.com:aleksandrbortsov/config-repo.git, with a file:///C:/Projects/Trainings/config-repo alternative.",
+      "complianceHint": "Deploy key embedded in the comment; never used because the active profile is native. README still tells users to generate it."
+    }
+  ],
+  "dependencies": [
+    { "name": "spring-cloud-config-server", "version": "managed by spring-cloud-dependencies ${spring-cloud.version}", "category": "runtime" },
+    { "name": "spring-cloud-starter-consul-discovery", "version": "managed; resolved 3.1.2 per committed stack trace", "category": "runtime" },
+    { "name": "spring-boot-admin-starter-client", "version": "${spring-boot-admin.version} (parent property)", "category": "observability" },
+    { "name": "spring-boot-starter-test", "version": "managed by parent", "category": "test" },
+    { "name": "maven-wrapper", "version": "wrapper 3.1.0 / Maven 3.8.6 distribution", "category": "build" }
+  ],
+  "patterns": [
+    {
+      "name": "Fixed ports only for infrastructure; every delivered business service uses a random port",
+      "evidence": ["application.yml:1-2 server.port 8888", "config/gateway-service.yml:1-2 server.port 3535", "config/person-service.yml:1-2 server.port 0", "config/user-service.yml:1-2 server.port 0", "config/notification-service.yml:1-2 server.port 0"]
+    },
+    {
+      "name": "Database-per-service with Hibernate-managed schema, no migration tool (2 of 8 services delivered here)",
+      "evidence": ["config/person-service.yml:27-30 jpa.hibernate.ddl-auto update + show-sql true", "config/person-service.yml:44-48 jdbc:mysql://localhost:3306/persons_schema, driver com.mysql.cj.jdbc.Driver", "config/user-service.yml:37-40 ddl-auto update, show-sql true", "config/user-service.yml:50-55 jdbc:mysql://localhost:3307/users_schema", "config/gateway-service.yml and config/notification-service.yml — no spring.datasource block"]
+    },
+    {
+      "name": "Uniform Consul block; gateway alone enables consul.config and alone omits instance-id",
+      "evidence": ["config/gateway-service.yml:27-34 — consul.config.enabled: true, register-health-check: false, NO instance-id", "config/person-service.yml:40-42 instance-id \"${spring.cloud.client.hostname}_${spring.application.name}:${random.value}\"", "config/user-service.yml:46-48 same template", "config/notification-service.yml:29-34 same template", "application.yml:29-31 server registers itself with the same template"]
+    },
+    {
+      "name": "Admin client URL injected by env var with localhost default in all 4 delivered docs; absent from the server's own file",
+      "evidence": ["gateway-service.yml:22, notification-service.yml:23, person-service.yml:25, user-service.yml:25 — spring.boot.admin.client.url ${ADMIN_SERVER:http://localhost:5555/}", "application.yml:18-19 — only admin client username/password, no url key", "user-service.yml:26-32 — commented admin username/password + instance.metadata.user.* block"]
+    },
+    {
+      "name": "Actuator fully web-exposed in every file, delivered and local",
+      "evidence": ["application.yml:13-15 include \"*\"", "gateway-service.yml:15-16, notification-service.yml:16-17, person-service.yml:18-19, user-service.yml:18-19 — include \"*\" + health.show-details: always"]
+    },
+    {
+      "name": "Hibernate SQL echo left ON everywhere, including services with no Hibernate",
+      "evidence": ["gateway-service.yml:9-11 org.hibernate.SQL debug / type.descriptor.sql trace — no datasource in the file", "notification-service.yml:10-12 same, no datasource", "person-service.yml:10-14 + show-sql:30", "user-service.yml:10-14 + show-sql:40"]
+    },
+    {
+      "name": "Jackson NON_NULL pinned centrally in all 4 documents",
+      "evidence": ["gateway-service.yml:24-25", "notification-service.yml:25-26", "person-service.yml:32-33", "user-service.yml:34-35 — spring.jackson.default-property-inclusion NON_NULL"]
+    },
+    {
+      "name": "Two incompatible logging-rolling idioms in one component (server current, delivered deprecated)",
+      "evidence": ["application.yml:4-11 — logging.logback.rollingpolicy.max-file-size 10Mb / max-history 7", "gateway-service.yml:7-8, notification-service.yml:7-8, person-service.yml:7-8, user-service.yml:7-8 — logging.file.max-size 10Mb / logging.file.max-history 7 (deprecated keys)"]
+    },
+    {
+      "name": "The gateway route table is authored here, not in the gateway",
+      "evidence": ["gateway-service.yml:36-54 — discovery.locator.enabled true + auth-service-id Path=/auth/** lb://auth-service (no filter); user-service-id Path=/users/** lb://user-service filter AuthFilter; 'person-service-in' (id typo, :50) Path=/persons/** lb://person-service filter AuthFilter", "gateway-service.yml:38-54 — no route for account-service or notification-service; locator enabled means the route list is not an allow-list and AuthFilter is per-route, not global"]
+    },
+    {
+      "name": "JWT settings delivered to user-service only; token lifetime documented wrongly by 10x",
+      "evidence": ["user-service.yml:57-61 — jwt.secret env-overridable with inline default; comment at :57 says it should be encrypted; jwt.token.validity 180000 with comment '#3 minutes validity' (180000 ms = 3 hours)"]
+    },
+    {
+      "name": "Split configuration model: 4 services central, 4 local",
+      "evidence": ["config/ — documents exist only for gateway-service, notification-service, person-service, user-service", "git ls-files (names only) — those 4 each own src/main/resources/bootstrap.yml; auth-service and admin-service own application.yml; account-service owns application.properties", "No document in config/ for auth-service, admin-service, account-service or config-service itself"]
+    },
+    {
+      "name": "Config-client override flags set on the server instead of the clients",
+      "evidence": ["application.yml:32-35 — spring.cloud.config.allowOverride true, overrideNone true, overrideSystemProperties false (consumer-side ConfigClientProperties keys, mutually contradictory here); commented '# bootstrap: true' at :38 sits under server: where no such property exists"]
+    },
+    {
+      "name": "No profile-scoped configuration documents at all",
+      "evidence": ["config/ — no *-dev/*-test/*-prod variants; name-only documents serve every profile", "src/main/resources — no application-<profile>.yml; 'native' is the only profile in the module"]
+    },
+    {
+      "name": "Runtime logs are committed to git",
+      "evidence": ["git ls-files — logs/config-service.log and logs/config-service.log.2022-12-05.0.gz tracked; logs/config-service.log.2023-06-21.0.gz untracked", "application.yml:5-6 — logging.file.name writes into the module directory", "No .gitignore anywhere under config-service/ (person-service and user-service each have one)"]
+    },
+    {
+      "name": "The module's only test boots the whole app and needs a live Consul to run clean",
+      "evidence": ["ConfigServiceApplicationTests.java:6-11 — @SpringBootTest, single empty contextLoads()", "logs/config-service.log:2,8 — profile native active, context started 8.105 s", "logs/config-service.log:9,11,51,53 — ERROR 'Error watching Consul CatalogServices', Connect to localhost:8500 refused", "logs/config-service.log:6 — Spring Cloud LoadBalancer default-cache warning"]
+    },
+    {
+      "name": "A Maven wrapper IS committed here (contradicts .opencode/rules/development.md)",
+      "evidence": ["config-service/mvnw", "config-service/mvnw.cmd", "config-service/.mvn/wrapper/maven-wrapper.properties:1-2 — apache-maven-3.8.6, maven-wrapper-3.1.0", "config-service/.mvn/wrapper/maven-wrapper.jar"]
+    },
+    {
+      "name": "Environment-variable injection points — the only externalisation present",
+      "evidence": ["${ADMIN_SERVER:...} in 4 delivered files", "${APP_JWT_SECRET:...} at user-service.yml:59", "instance-id placeholders (application.yml:31 + 3 delivered files)", "No env var on any datasource URL/credential, mail credential, actuator exposure, Consul host/port or server.port"]
+    }
+  ],
+  "infrastructure": {
+    "containers": [
+      { "name": "none", "status": "no Dockerfile and no Containerfile in config-service", "detail": "Glob for Dockerfile/Containerfile/docker-compose*/*.yaml under config-service returned no files. git ls-files shows Dockerfile only for person-service and user-service, and no compose file anywhere, so config-service runs via java -jar against a hand-started Consul.", "evidence": ["config-service — 16 files, 0 container definitions"] }
+    ],
+    "orchestration": [
+      { "name": "none", "status": "no Kubernetes manifests, no Helm chart, no Terraform", "detail": "No *.yaml other than Spring config under src/main/resources; no Chart.yaml, values.yaml or *.tf. Deploy target: 'run the jar on a developer machine'.", "evidence": ["config-service/src/main/resources/*.yml are Spring configuration, not orchestration"] }
+    ],
+    "pipelines": [
+      { "name": "none", "status": "no CI/CD pipeline file in this component — plainly: there is none", "detail": "No .github/workflows, .gitlab-ci.yml, Jenkinsfile, .circleci or azure-pipelines.yml under config-service; the full git ls-files listing for the repository contains no CI file at all, so this module has never been built or tested automatically.", "evidence": ["config-service/mvnw", "config-service/mvnw.cmd", "config-service/pom.xml:53-60"] }
+    ],
+    "environments": [
+      "native — the only profile: spring.profiles.active: native at application.yml:21-22; runtime-confirmed by logs/config-service.log:2",
+      "'native' selects the CLASSPATH backend: documents are read from the packaged config/ directory inside this jar (default classpath:/config/, not overridden here), so platform configuration is versioned inside this repository and shipped in the config-service jar — no git remote is contacted at boot; changing it means rebuilding/redeploying config-service (or writing file:./config/) plus a restart or /refresh",
+      "git backend DECLARED BUT ENTIRELY COMMENTED OUT at application.yml:36-98 — spring.cloud.config.server.git: uri git@github.com:aleksandrbortsov/config-repo.git (:41), file:///C:\\Projects\\Trainings\\config-repo alternative (:40), default-label: main (:42), ignoreLocalSshSettings: true (:43), hostKeyAlgorithm: ssh-rsa (:44), hostKey: algotrade (:45), privateKey (:46, body 47-97). Two uri: keys at the same level (:40,:41) so the block could not have worked as written. Consequence: the README's ssh-keygen deploy-key instructions describe a mechanism the committed code never uses",
+      "No profile-scoped documents — config/ holds only gateway-service.yml, notification-service.yml, person-service.yml, user-service.yml; dev is the only environment this module can express",
+      "Overridable: ADMIN_SERVER (4 files), APP_JWT_SECRET (user-service.yml:59). Hardcoded: Consul localhost:8500 (5 files), MySQL localhost:3306 + localhost:3307, SMTP smtp.gmail.com:587, every server.port",
+      "Deploy target: localhost only; port 8888, no container, no orchestrator"
+    ],
+    "observability": [
+      "management.endpoints.web.exposure.include \"*\" — application.yml:13-15 and all 4 delivered documents (gateway-service.yml:15, notification-service.yml:16, person-service.yml:18, user-service.yml:18). Scope: EVERY actuator endpoint web-exposed and unauthenticated — on the server at :8888 and, because it is delivered, on the gateway at :3535 and the 3 random-port services; /env and /configprops therefore re-emit the credentials listed in secretFindings",
+      "management.endpoints.health.show-details: always in the 4 delivered documents; not set for config-service itself",
+      "Logging (server): logging.file.name logs/config-service.log; logging.logback.rollingpolicy.max-file-size 10Mb; max-history 7 — application.yml:4-11",
+      "Logging (delivered): logging.file.name logs/<service>.log with logging.file.max-size 10Mb + logging.file.max-history 7 — deprecated key names in all 4 files",
+      "Log levels delivered: org.hibernate.SQL debug + org.hibernate.type.descriptor.sql trace in all 4; spring.jpa.show-sql true additionally in person-service.yml:30 and user-service.yml:40",
+      "Spring Boot Admin client: de.codecentric starter (pom.xml:18-22); url ${ADMIN_SERVER:http://localhost:5555/} delivered in 4 documents; server file sets only admin client username/password (application.yml:18-19) and no url",
+      "No metrics exporter: pom.xml declares no micrometer-registry-prometheus — observability is Admin + Actuator + file logs only",
+      "Committed runtime logs: logs/config-service.log (tracked, 2023-08-09 content), logs/config-service.log.2022-12-05.0.gz (tracked), logs/config-service.log.2023-06-21.0.gz (untracked)"
+    ]
+  },
+  "secretFindings": [
+    { "file": "config-service/src/main/resources/application.yml", "lines": "18-19", "property": "spring.boot.admin.client.username / spring.boot.admin.client.password", "form": "plaintext literal" },
+    { "file": "config-service/src/main/resources/application.yml", "lines": "46-97", "property": "spring.cloud.config.server.git.privateKey (inside the commented server: block 37-98)", "form": "commented-out key material — plaintext RSA private key present" },
+    { "file": "config-service/src/main/resources/config/person-service.yml", "lines": "46-47", "property": "spring.datasource.username / spring.datasource.password", "form": "plaintext literal" },
+    { "file": "config-service/src/main/resources/config/user-service.yml", "lines": "53-54", "property": "spring.datasource.username / spring.datasource.password", "form": "plaintext literal" },
+    { "file": "config-service/src/main/resources/config/notification-service.yml", "lines": "39-40", "property": "spring.mail.username / spring.mail.password", "form": "plaintext literal" },
+    { "file": "config-service/src/main/resources/config/user-service.yml", "lines": "58-59", "property": "jwt.secret", "form": "plaintext literal (inline default of the APP_JWT_SECRET placeholder; code comment at :57 says it should be encrypted)" },
+    { "file": "config-service/src/main/resources/config/user-service.yml", "lines": "26-32", "property": "spring.boot.admin.client.username / .password and spring.boot.admin.client.instance.metadata.user.name / .password", "form": "commented-out credential properties" }
+  ],
+  "crossComponentDependencies": [
+    { "targetPath": "gateway-service", "via": "config-service/src/main/resources/config/gateway-service.yml — fixed server.port 3535; Consul localhost:8500 with spring.cloud.consul.config.enabled: true (only consumer that enables it); no datasource so stateless; logs to logs/gateway-service.log" },
+    { "targetPath": "person-service", "via": "config-service/src/main/resources/config/person-service.yml — server.port 0 (random, Consul-assigned); MySQL localhost:3306, schema persons_schema, driver com.mysql.cj.jdbc.Driver; jpa.hibernate.ddl-auto update; Consul instance-id template" },
+    { "targetPath": "user-service", "via": "config-service/src/main/resources/config/user-service.yml — server.port 0; MySQL localhost:3307, schema users_schema; ddl-auto update; consumes delivered jwt.secret and jwt.token.validity 180000" },
+    { "targetPath": "notification-service", "via": "config-service/src/main/resources/config/notification-service.yml — server.port 0; no datasource delivered (stateless); SMTP server + credentials delivered; Consul instance-id template. No Kafka properties here although git ls-files shows notification-service/src/main/java/pro/algotrade/notificationservice/listener/KafkaListenerService.java (filename evidence only)" },
+    { "targetPath": "admin-service", "via": "config-service/src/main/resources/config/gateway-service.yml:22, notification-service.yml:23, person-service.yml:25, user-service.yml:25 — all four register with ${ADMIN_SERVER:http://localhost:5555/}, i.e. admin-service is expected on port 5555" },
+    { "targetPath": "auth-service", "via": "config-service/src/main/resources/config/gateway-service.yml:39-42 — gateway routes Path=/auth/** to lb://auth-service with NO AuthFilter (the login entry point); no document here, so auth-service is configured locally only" },
+    { "targetPath": "account-service", "via": "config-service/src/main/resources/config/ (no account-service.yml) + gateway-service.yml:38-54 (no route) — referenced nowhere in the configuration plane; only implicit reachability is spring.cloud.gateway.discovery.locator.enabled: true by service id" },
+    { "targetPath": "external:hashicorp-consul@localhost:8500", "via": "config-service/src/main/resources/application.yml:26-31 and all 4 delivered documents — hard runtime prerequisite; logs/config-service.log:9-25 shows it failing soft when absent" },
+    { "targetPath": "external:mysql@localhost:3306+localhost:3307", "via": "config-service/src/main/resources/config/person-service.yml:45 and user-service.yml:52 — two endpoints; no compose file provides either" },
+    { "targetPath": "external:smtp@smtp.gmail.com:587", "via": "config-service/src/main/resources/config/notification-service.yml:36-56 — STARTTLS enabled; SSL/465 variant commented (:54-56); timeouts commented (:47-49)" },
+    { "targetPath": "external:github-config-repo (INACTIVE)", "via": "config-service/src/main/resources/application.yml:41 — git@github.com:aleksandrbortsov/config-repo.git, commented out; the file:///C:/Projects/Trainings/config-repo checkout at :40 is likewise commented" }
+  ],
+  "gaps": [
+    "The committed runtime logs were not read in full: logs/config-service.log (tracked) was inspected by targeted pattern search only and the two rotated .gz files (logs/config-service.log.2022-12-05.0.gz tracked, logs/config-service.log.2023-06-21.0.gz untracked) were not decompressed — whether resolved credentials leak into them is UNVERIFIED, not proven absent. This is the sole reason coverage is partial.",
+    "How consumers locate config-service (explicit spring.cloud.config.uri vs Consul discovery vs bootstrap.yml import) is decided in each sibling's src/main/resources/bootstrap.yml, out of scope — the delivery path is inferred, not confirmed.",
+    "Whether spring.cloud.config.allowOverride / overrideNone / overrideSystemProperties (application.yml:32-35) bind at all in the server process was not verified; it needs a resolved dependency-tree check for ConfigClientProperties, a build action outside this agent's read-only permission.",
+    "Spring Boot Admin client default-URL behaviour for config-service itself (username/password set, url absent at application.yml:18-19) was not checked against the de.codecentric 2.7.x defaults, so 'config-service does not register with admin-service' stays a high-confidence inference.",
+    "Sibling configuration contents (auth-service/application.yml, admin-service/application.yml, account-service/application.properties, the 4 bootstrap.yml) were not read, so what is duplicated locally vs delivered centrally is undetermined — only document existence is proven.",
+    "No git-history analysis, so when the git block was commented out (and how long the README deploy-key instructions have been stale) is undetermined.",
+    "Spring Boot / Spring Cloud versions in force are inherited from the aggregator pom, out of scope; only spring-cloud-consul-discovery-3.1.2 and consul-api-1.4.5 are confirmed here (from committed stack traces).",
+    "mvnw, mvnw.cmd and .mvn/wrapper/maven-wrapper.jar were not opened (scripts/binary); wrapper versions come from .mvn/wrapper/maven-wrapper.properties."
+  ],
+  "recommendations": [
+    "Rotate + externalise the 6 live credential locations, and purge application.yml:36-98 from git history — the private key is committed even though commented.",
+    "Pick one config source and make the docs agree: if 'native' stays, delete the commented git block and rewrite the README's ssh-keygen/deploy-key section; if git is wanted, fix the block (duplicate uri keys; hostKey 'algotrade' is not a host key) and keep the key out of the file.",
+    "Stop shipping the actuator wide open: replace include \"*\" with an explicit list in all 5 files, or at minimum gate /env and /configprops, which expose the plaintext credentials over unauthenticated HTTP on 8888 and 3535.",
+    "Unify the logging idiom on logging.logback.rollingpolicy.* — the 4 delivered documents still use the deprecated logging.file.max-size / max-history and are likely ignoring their own caps.",
+    "Untrack logs/, add a config-service/.gitignore, and point logging.file.name outside the working tree.",
+    "Resolve jwt.token.validity: 180000 vs its '#3 minutes validity' comment (180000 ms = 3 hours) — an auth-policy discrepancy in the file that sets it.",
+    "Add one real test: @SpringBootTest(RANDOM_PORT) GETting /gateway-service/default asserting server.port 3535. Today the only test is an empty contextLoads() that logs ERROR 'Connect to localhost:8500 … refused' unless Consul runs.",
+    "Resolve the 4/4 configuration split deliberately: add account-service.yml / auth-service.yml / admin-service.yml, or document that those three are intentionally local-config so nobody assumes :8888 is authoritative for all 8 services.",
+    "Add an explicit spring.cloud.config.server.native.search-locations, and move the three config-client override flags from the server's own file to the clients they govern.",
+    "Correct .opencode/rules/development.md — a Maven wrapper IS committed (mvnw, mvnw.cmd, .mvn/wrapper/*; Maven 3.8.6, wrapper 3.1.0), in this and every sibling module."
+  ]
+}

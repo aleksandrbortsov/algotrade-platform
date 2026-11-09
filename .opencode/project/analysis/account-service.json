@@ -1,0 +1,214 @@
+{
+  "schemaVersion": 1,
+  "component": "account-service",
+  "path": "account-service",
+  "kind": "backend",
+  "languages": ["Java 17", "Java properties", "XML (Maven POM)", "Shell/batch (Maven wrapper)"],
+  "coverage": "full",
+  "filesRead": 12,
+  "generatedAt": "2026-11-10T12:00:00Z",
+
+  "entryPoints": [
+    {
+      "path": "account-service/src/main/java/pro/algotrade/accountservice/AccountServiceApplication.java",
+      "purpose": "The single @SpringBootApplication class (annotation at line 6) with main() at lines 9-11 calling SpringApplication.run(AccountServiceApplication.class, args). 13 lines total. It is the ONLY entry point and the ONLY class with a main method in the module."
+    },
+    {
+      "path": "account-service/src/main/resources/application.properties",
+      "purpose": "Intended external-configuration entry point, but the file is EMPTY (1 blank line). No spring.application.name, no server.port, no spring.datasource.*, no spring.jpa.*, no spring.cloud.*. This is the decisive defect: the module is not runnable as committed."
+    }
+  ],
+
+  "architecture": {
+    "pattern": "Non-functional scaffold. No layering exists beyond one root package plus a leaf 'model/common/utils' package. This is a skeleton, not a service.",
+    "evidence": [
+      "Exactly 3 Java files in the whole module: AccountServiceApplication.java (13 lines), model/common/utils/TokenStatus.java (6 lines), model/common/utils/AccountTariff.java (17 lines) = 36 lines of Java total.",
+      "Only 2 packages exist: pro.algotrade.accountservice and pro.algotrade.accountservice.model.common.utils. There is NO controller, service, repository, entity, dto, mapper, config, exception or security package.",
+      "0 @RestController, 0 @Controller, 0 @RequestMapping, 0 @Service, 0 @Repository, 0 @Entity, 0 @Table, 0 @Id, 0 @Configuration, 0 @Bean in the module.",
+      "src/test does not exist at all - the module has zero test classes and zero test resources.",
+      "0 configuration classes, whereas the two most similar siblings each have one (person-service/.../PersonApplicationConfiguration.java, user-service/.../UserApplicationConfiguration.java).",
+      "spring-boot-starter-data-jpa is on the classpath while no spring.datasource.url is configured anywhere (application.properties is empty; config-service has no account-service.yml) -> DataSourceAutoConfiguration fails, so the application context cannot start.",
+      "git log for the module has exactly one commit: 668e39b 'initial commit' dated 2023-01-20 - the module has never been touched since the repo was created."
+    ]
+  },
+
+  "dependencies": [
+    { "name": "org.springframework.boot:spring-boot-starter-data-jpa", "version": "managed by spring-boot-starter-parent 2.7.5 (no explicit version in account-service/pom.xml:17-20)", "category": "persistence - DECLARED BUT UNUSED (0 @Entity, 0 repository interfaces)" },
+    { "name": "org.springframework.boot:spring-boot-starter-web", "version": "managed by spring-boot-starter-parent 2.7.5 (account-service/pom.xml:21-24)", "category": "web - DECLARED BUT UNUSED (0 controllers; an embedded Tomcat would start and serve only /error)" },
+    { "name": "com.mysql:mysql-connector-j", "version": "managed by spring-boot-starter-parent 2.7.5; <scope>runtime</scope> (account-service/pom.xml:26-30)", "category": "jdbc-driver - DECLARED BUT UNCONFIGURED (no spring.datasource.url anywhere)" },
+    { "name": "org.projectlombok:lombok", "version": "1.18.24 (root pom.xml:34 overrides the Spring Boot parent property org.projectlombok.version); <optional>true</optional>", "category": "codegen - DECLARED BUT UNUSED (no 'import lombok' in any of the 3 Java files); also excluded from the repackaged jar at account-service/pom.xml:49-55" },
+    { "name": "org.springframework.boot:spring-boot-starter-test", "version": "managed by spring-boot-starter-parent 2.7.5; <scope>test</scope> (account-service/pom.xml:36-40)", "category": "test - DECLARED BUT UNUSED (src/test does not exist)" },
+    { "name": "org.springframework.boot:spring-boot-maven-plugin", "version": "managed (account-service/pom.xml:45-56)", "category": "build - repackage; the only <build> plugin in the module" },
+    { "name": "ABSENT: org.springframework.cloud:spring-cloud-starter-consul-discovery", "version": "not declared; no <dependencyManagement> block exists in this pom, so the spring-cloud BOM is not even imported", "category": "absent - service registration" },
+    { "name": "ABSENT: org.springframework.cloud:spring-cloud-starter-bootstrap and spring-cloud-starter-config", "version": "not declared", "category": "absent - externalised configuration" },
+    { "name": "ABSENT: org.mapstruct:mapstruct", "version": "not declared, although the root pom.xml:35 defines org.mapstruct.version 1.5.3.Final for the siblings", "category": "absent - DTO mapping" }
+  ],
+
+  "actuallyImportedDependencies": {
+    "note": "Of the 5 declared runtime/test dependencies, ZERO is referenced from Java source. The only imports in the entire module are org.springframework.boot.SpringApplication and org.springframework.boot.autoconfigure.SpringBootApplication (AccountServiceApplication.java:3-4), which come from spring-boot / spring-boot-autoconfigure, not from web, data-jpa, mysql or lombok.",
+    "importsFound": [
+      "org.springframework.boot.SpringApplication (AccountServiceApplication.java:3)",
+      "org.springframework.boot.autoconfigure.SpringBootApplication (AccountServiceApplication.java:4)"
+    ]
+  },
+
+  "businessModules": [
+    {
+      "name": "Account tariff / plan classification",
+      "path": "account-service/src/main/java/pro/algotrade/accountservice/model/common/utils/AccountTariff.java",
+      "purpose": "The ONLY domain-bearing content in the module. Enum INVESTOR(\"investor\"), TRADER(\"trader\"), DEMO(\"demo\") each carrying a lowercase string payload exposed by getTariff() (lines 4-16). Read together with the platform description (root pom.xml:17-25, 'strategy simulator ... whether you are a professional trader or an investment newbie') and the Russian localisation DEMO='Песочница' (sandbox), this is a subscription/entitlement TIER for a user's account, not a brokerage-account entity. Referenced by NO other Java file in the repository - dead code as committed."
+    },
+    {
+      "name": "Tariff label localisation (en + ru)",
+      "path": "account-service/src/main/resources/message/data.properties",
+      "purpose": "3 keys: data.user.account.tariff.investor=Investor, .trader=Trader, .demo=Demo. data_rus.properties holds the same 3 keys in Russian (Инвестор / Трейдёр / Песочница). INERT: no ResourceBundleMessageSource bean and no spring.messages.basename exist in this module, so nothing loads the bundle. The key prefix 'data.user.account.tariff.*' nests account under USER, and the messageSource() pattern the bundle presupposes exists only in user-service (UserApplicationConfiguration.java:12) and person-service (PersonApplicationConfiguration.java:11)."
+    },
+    {
+      "name": "Token status classification",
+      "path": "account-service/src/main/java/pro/algotrade/accountservice/model/common/utils/TokenStatus.java",
+      "purpose": "Bare enum with constants AVAILABLE and EXPIRED (lines 3-6). No fields, no methods, no JPA @Enumerated usage, no reference anywhere in the repository. Its intended meaning (an API-access token governed by the tariff? an OAuth token?) cannot be determined from this module - recorded as a gap."
+    }
+  ],
+
+  "entities": [
+    {
+      "name": "NO JPA ENTITY EXISTS IN THIS MODULE (0 @Entity, 0 @Table, 0 @Id, 0 @GeneratedValue). No 'Account' class or table of any kind exists anywhere in the repository (repo-wide grep for 'class|enum|interface Account\\w*' matched only AccountTariff and AccountServiceApplication)",
+      "path": "not found",
+      "relations": ["none - no table, no primary key, no foreign key"]
+    },
+    {
+      "name": "AccountTariff (enum value type, NOT a persistent entity)",
+      "path": "account-service/src/main/java/pro/algotrade/accountservice/model/common/utils/AccountTariff.java",
+      "relations": [
+        "NONE expressed in code: no @ManyToOne, no @JoinColumn, no @Enumerated, no accountId/userId/personId field exists anywhere in the module",
+        "not persisted - no @Entity, no @Enumerated, no table",
+        "referenced by 0 other files in the repository (dead code)",
+        "the ONLY evidence of an intended relation to a user is the i18n key prefix 'data.user.account.tariff.*' in src/main/resources/message/data.properties:1-3, which nests the account concept under 'user' - i.e. an Account is intended to be a per-USER trading/subscription account, not an authentication account (authentication lives in user-service + auth-service)"
+      ]
+    },
+    {
+      "name": "TokenStatus (enum value type, NOT a persistent entity)",
+      "path": "account-service/src/main/java/pro/algotrade/accountservice/model/common/utils/TokenStatus.java",
+      "relations": [
+        "NONE expressed in code",
+        "referenced by 0 other files in the repository (dead code)"
+      ]
+    }
+  ],
+
+  "endpointGroups": [],
+
+  "integrations": [
+    {
+      "name": "MySQL (JDBC driver only)",
+      "package": "com.mysql:mysql-connector-j (scope runtime)",
+      "usedIn": [
+        "account-service/pom.xml:26-30 - declaration only",
+        "NOT used in any Java file (0 imports)",
+        "NOT configured: no spring.datasource.url / username / password / driver-class-name anywhere in the module, and no account-service.yml in config-service/src/main/resources/config/"
+      ],
+      "purpose": "Intended persistence target. No schema name is stated anywhere for this module (persons_schema belongs to person-service, users_schema to user-service); an accounts schema is NOT provisioned by anything in this repository.",
+      "complianceHint": "mysql-connector-j is GPL-2.0-with-FOSS-Exception. The declared driver is never activated, so wiring a datasource later is a new runtime dependency decision (see .opencode/rules/development.md dependency governance) - and the credentials must not be inlined as YAML/properties values. The platform already carries that gap elsewhere (see .opencode/project_init.md Open Gaps: spring.datasource.username / spring.datasource.password as literals in the config-service delivered documents); values deliberately not reproduced here."
+    },
+    {
+      "name": "Spring Data JPA / Hibernate",
+      "package": "org.springframework.boot:spring-boot-starter-data-jpa",
+      "usedIn": ["account-service/pom.xml:17-20 - declaration only; 0 @Entity, 0 repository interfaces, 0 spring.jpa.* properties"],
+      "purpose": "Intended ORM. Currently inert AND actively harmful: with the starter present and no datasource URL, DataSourceAutoConfiguration aborts context startup.",
+      "complianceHint": "No Flyway and no Liquibase in this module - consistent with the platform-wide 'ddl-auto or nothing' state. If persistence is added, decide schema management deliberately rather than defaulting to spring.jpa.hibernate.ddl-auto (hibernate.hbm2ddl.auto) the way the person/user documents served by config-service do."
+    },
+    {
+      "name": "Spring Web MVC (embedded servlet container)",
+      "package": "org.springframework.boot:spring-boot-starter-web",
+      "usedIn": ["account-service/pom.xml:21-24 - declaration only; 0 controllers, 0 filters, 0 interceptors, 0 @Configuration"],
+      "purpose": "Intended HTTP transport. With 0 mappings the only HTTP path this service could serve is Boot's default /error.",
+      "complianceHint": "No spring-boot-starter-security and no resource-server config: if a controller is added and the service is put behind gateway-service, JWT validation must be added too - today it would be unauthenticated behind the edge."
+    },
+    {
+      "name": "ABSENT integrations (explicitly searched for, none found)",
+      "package": "n/a",
+      "usedIn": [
+        "spring-cloud-starter-consul-discovery - absent (present in 7 of the 8 sibling poms)",
+        "spring-cloud-starter-config / spring-cloud-starter-bootstrap - absent (config client present in 4 sibling poms)",
+        "spring-cloud-starter-openfeign - absent",
+        "RestTemplate / WebClient / RestTemplateBuilder - 0 occurrences in module Java",
+        "spring-boot-starter-security, spring-boot-starter-actuator, spring-boot-admin-starter-client, spring-boot-starter-mail, aerogear-otp-java, zxing - all absent"
+      ],
+      "purpose": "Establishes that this module has no outbound or inbound integration of any kind, including no service-mesh membership.",
+      "complianceHint": "n/a"
+    }
+  ],
+
+  "persistenceLayer": {
+    "driver": "com.mysql:mysql-connector-j declared <scope>runtime</scope> at account-service/pom.xml:26-30; never referenced or configured",
+    "dialect": "not set - no spring.jpa.database-platform / spring.jpa.properties.hibernate.dialect anywhere in the module",
+    "ddlAuto": "not set - no spring.jpa.hibernate.ddl-auto in the module (person-service.yml and user-service.yml set 'update' in config-service; there is no account-service equivalent)",
+    "migrationTool": "none - no Flyway, no Liquibase, no src/main/resources/db directory",
+    "schemaName": "not found - no schema is declared or implied for this module; persons_schema (person-service) and users_schema (user-service) belong to siblings",
+    "dataSourceUrlPresence": "ABSENT. src/main/resources/application.properties is a single blank line, and config-service/src/main/resources/config/ contains only gateway-service.yml, person-service.yml, notification-service.yml and user-service.yml - there is NO account-service.yml",
+    "repositoryInterfaces": "none - 0 interfaces extending JpaRepository/CrudRepository/PagingAndSortingRepository; no repository package exists",
+    "entities": "none",
+    "consequence": "Spring Boot's DataSourceAutoConfiguration cannot determine a URL and no embedded database is on the classpath (mysql-connector-j is not embedded), so `java -jar account-service-1.0.jar` fails at startup with \"Failed to configure a DataSource: 'url' attribute is not specified\"."
+  },
+
+  "patterns": [
+    { "name": "Single-class Spring Boot bootstrap (no explicit @Enable* / @ComponentScan tuning)", "evidence": ["account-service/src/main/java/pro/algotrade/accountservice/AccountServiceApplication.java:6-12"] },
+    { "name": "Enum carrying a display string plus a getter (the codebase's enum convention)", "evidence": ["account-service/src/main/java/pro/algotrade/accountservice/model/common/utils/AccountTariff.java:4-16"] },
+    { "name": "Bare constant enum", "evidence": ["account-service/src/main/java/pro/algotrade/accountservice/model/common/utils/TokenStatus.java:3-6"] },
+    { "name": "ResourceBundle i18n bundle under src/main/resources/message with a default and a _rus locale file", "evidence": ["account-service/src/main/resources/message/data.properties:1-3", "account-service/src/main/resources/message/data_rus.properties:1-3"], "status": "inert in this module - the loader pattern exists only in siblings"},
+    { "name": "Per-module Maven Wrapper scaffold (maven-wrapper 3.1.0 / Maven 3.8.6), committed in every one of the 8 modules", "evidence": ["account-service/.mvn/wrapper/maven-wrapper.properties:1-2", "account-service/mvnw", "account-service/mvnw.cmd"] },
+    { "name": "Lombok excluded from the repackaged fat jar", "evidence": ["account-service/pom.xml:49-55"] }
+  ],
+
+  "crossComponentDependencies": [
+    { "targetPath": "pom.xml", "via": "Maven parent pro.algotrade:algo-trade-platform:1.0 declared at account-service/pom.xml:5-9; the aggregator lists <module>account-service</module> at pom.xml:45, and spring-boot-starter-parent 2.7.5 / java.version 17 are inherited from pom.xml:7-12 and pom.xml:31. account-service therefore COMPILES as part of the reactor." },
+    { "targetPath": "config-service/src/main/resources/config/", "via": "NO dependency in either direction. That directory contains gateway-service.yml, person-service.yml, notification-service.yml and user-service.yml only - no account-service.yml. account-service also has no config-client or bootstrap dependency, so it never contacts config-service." },
+    { "targetPath": "gateway-service", "via": "NO route exists. config-service/src/main/resources/config/gateway-service.yml defines exactly 3 explicit routes (uri lb://auth-service Path=/auth/** at lines 40-42; lb://user-service Path=/users/** at 45-47; lb://person-service Path=/persons/** at 51-53) and never mentions account-service. The gateway's discovery.locator.enabled: true (gateway-service.yml:37) WOULD auto-route any Consul-registered service under /account-service/**, but account-service cannot register (no discovery dependency)." },
+    { "targetPath": "user-service", "via": "COPY-PASTE PROVENANCE, not a runtime call. The i18n key prefix data.user.account.tariff.* nests 'account' under 'user', and the ResourceBundleMessageSource loader this bundle presupposes exists only in user-service/src/main/java/pro/algotrade/userservice/UserApplicationConfiguration.java:12 and person-service/src/main/java/pro/algotrade/personservice/PersonApplicationConfiguration.java:11 - neither is duplicated in account-service." },
+    { "targetPath": "person-service", "via": "No dependency. Repo-wide grep found 0 references to accountservice / AccountService / AccountTariff / TokenStatus outside account-service itself." }
+  ],
+
+  "runnabilityAssessment": {
+    "registeredInConsul": false,
+    "consulEvidence": "account-service/pom.xml has no spring-cloud-starter-consul-discovery and no <dependencyManagement> importing the spring-cloud BOM. The other 7 modules all declare spring-cloud-starter-consul-discovery (admin-service/pom.xml:20, user-service/pom.xml:85, auth-service/pom.xml:48, gateway-service/pom.xml:46, config-service/pom.xml:31, person-service/pom.xml:46, notification-service/pom.xml:52). 4 of them also carry spring-cloud-starter-bootstrap + spring-cloud-starter-config. account-service is the ONLY module with zero spring-cloud dependency of any kind.",
+    "implication": "Even if the DataSource problem were fixed, the process would start as a plain standalone Spring Boot app on a random port (no server.port set) with no service id, no Consul registration and no externalised config - i.e. invisible to the mesh and unreachable through gateway-service.",
+    "reachableToday": false,
+    "reachableEvidence": [
+      "1. It does not start: spring-boot-starter-data-jpa on the classpath with an empty application.properties and no account-service.yml -> DataSource startup failure.",
+      "2. It is not registered in Consul (no discovery client), so gateway's discovery locator cannot produce a route.",
+      "3. It has no explicit gateway route (gateway-service.yml lines 38-53 cover only /auth/**, /users/**, /persons/**).",
+      "4. It has no Dockerfile - only person-service and user-service are containerised - and there is no docker-compose file in the repository.",
+      "5. Nothing in the repository calls it: 0 Java references from sibling modules."
+    ],
+    "workInProgress": true,
+    "workInProgressEvidence": "One commit only (668e39b 'initial commit', 2023-01-20) for the whole module; 36 lines of Java; two unreferenced enums; an empty application.properties; an i18n bundle with no loader. It reads as a generated Spring Initializr scaffold into which two enums and a message bundle were dropped, then abandoned.",
+    "minimumToMakeFunctional": [
+      "Add a runnable configuration: either a populated src/main/resources/application.properties (spring.application.name=account-service, server.port, spring.datasource.url/username/password/driver-class-name, spring.jpa.* + an explicit schema) OR, to match the 4 config-driven siblings, add spring-cloud-starter-bootstrap + spring-cloud-starter-config + spring-cloud-starter-consul-discovery plus a spring-cloud-dependencies <dependencyManagement> import, and create config-service/src/main/resources/config/account-service.yml.",
+      "Provision the MySQL schema the service owns (nothing in this repo creates one) and choose schema management explicitly (Flyway/Liquibase rather than hibernate ddl-auto:update).",
+      "Create the persistence model: an Account @Entity with an @Id, a @Table, and the intended id-based reference to a user (a userId/personId column or @ManyToOne), using AccountTariff as an @Enumerated(EnumType.STRING) or a JPA AttributeConverter field so the existing enums become live.",
+      "Create at least one JpaRepository interface, one @Service, and one @RestController + request/response DTOs (MapStruct is used by the siblings but is not declared here - adding it is a dependency decision).",
+      "Expose it: add an explicit gateway-service route (Path=/accounts/** -> lb://account-service) or rely on the gateway's discovery locator once Consul registration exists.",
+      "Add the first test - spring-boot-starter-test is already declared but src/test does not exist."
+    ]
+  },
+
+  "gaps": [
+    "no @RestController / @RequestMapping found in this module",
+    "Searched and found nothing: 0 @RestController, 0 @Controller, 0 @RequestMapping, 0 @GetMapping, 0 @PostMapping, 0 @PutMapping, 0 @DeleteMapping, 0 @PatchMapping across all 3 Java files. endpointGroups is therefore legitimately empty. Search performed over every file in account-service/ (12 files, listed in the .md report).",
+    "No JPA entity exists, so the 'Account' domain concept has NO fields, NO table name and NO id-based relation to person/user recorded anywhere in the code. The only evidence of intent is the enum AccountTariff and the i18n key prefix 'data.user.account.tariff.*'. Whether an Account is a trading account or an authentication account CANNOT be determined from code; the tariff labels (investor / trader / demo=sandbox) plus the root pom.xml:17-25 platform description point to a per-user TRADING/SUBSCRIPTION account, with authentication living in user-service + auth-service - that is an inference, not a code fact.",
+    "TokenStatus (AVAILABLE / EXPIRED) has no field, no usage and no comment; what token it qualifies (an API-access token governed by the tariff, or an OAuth/JWT token) is undetermined.",
+    "No datasource URL, dialect, ddl-auto or schema name exists for this module, so the intended database cannot be identified - there is no accounts schema anywhere in the repository.",
+    "No API specification: no OpenAPI/Swagger dependency, no springdoc, no .yaml/.json API contract, no Postman/Bruno collection, no .http files. API-spec discovery result = not found.",
+    "coverage is 'full' for files read (every text file in the module was opened; the only file not opened is .mvn/wrapper/maven-wrapper.jar, a binary Maven Wrapper 3.1.0 artifact), but the module is too incomplete to answer the business questions a functional service would answer.",
+    "Cross-check outside scope performed by grep only (paths cited, not analysed): sibling poms, root pom.xml, and config-service/src/main/resources/config/gateway-service.yml, all consulted solely to answer whether this service is in the mesh."
+  ],
+
+  "recommendations": [
+    "Treat account-service as NOT PRESENT for planning purposes. It builds in the reactor but is unreachable, untested and unconfigured; any statement that the platform has 8 running services should say 7 + 1 scaffold.",
+    "Do not copy person-service or user-service configuration into this module as inline YAML - the platform already has inline credentials in committed YAML (see .opencode/project_init.md Open Gaps). If a datasource is added, externalise the credentials.",
+    "If the account domain is genuinely wanted, resolve the ownership question first (does user-service already own 'account'? user-service/.../UserEntity.java:42-43 already carries accountNonExpired/accountNonLocked Spring Security fields, which is a different meaning of 'account' and will confuse naming).",
+    "Fix or delete the two dead enums in the same change that introduces the Account entity - leaving them in package model.common.utils invites reuse of an unowned type.",
+    "Documentation impact outside this module: .opencode/rules/development.md:33 and :64 list account-service as a JPA+MySQL persistence owner, which overstates reality; and the same file's claim that 'no Maven wrapper is committed' is inaccurate - mvnw/mvnw.cmd are committed in all 8 modules. Flag for /docs-sync, do not edit from this analysis.",
+    "If the service is not going to be finished, removing <module>account-service</module> from pom.xml:45 is cleaner than carrying a scaffold that makes every architecture count read 8."
+  ]
+}

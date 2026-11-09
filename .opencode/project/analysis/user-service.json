@@ -1,0 +1,235 @@
+{
+  "schemaVersion": 1,
+  "component": "user-service",
+  "path": "user-service",
+  "kind": "backend",
+  "languages": ["Java"],
+  "coverage": "full",
+  "filesRead": 42,
+  "generatedAt": "2026-11-10T12:45:00Z",
+  "stats": { "javaFiles": 34, "mainLines": 938, "testFiles": 0, "todoCount": 2, "largestClass": "UserController.java (123 lines)" },
+  "entryPoints": [
+    { "path": "user-service/src/main/java/pro/algotrade/userservice/UserServiceApplication.java", "purpose": "Only @SpringBootApplication (10) + only main() (13-15). Imports @Bean/BCryptPasswordEncoder/PasswordEncoder (5-7) but declares no bean - dead imports." },
+    { "path": "user-service/src/main/java/pro/algotrade/userservice/SecurityConfig.java", "purpose": "SecurityFilterChain (15-23): csrf().disable() at 18 carrying '//todo authenticate', anyRequest().permitAll() at 19, STATELESS at 21. JwtTokenFilter is never added to this chain." },
+    { "path": "user-service/src/main/java/pro/algotrade/userservice/PasswordConfig.java", "purpose": "PasswordEncoder = new BCryptPasswordEncoder() (11-14). The only live security bean." },
+    { "path": "user-service/src/main/java/pro/algotrade/userservice/UserApplicationConfiguration.java", "purpose": "ResourceBundleMessageSource basenames message/exception + message/notification, useCodeAsDefaultMessage(true) (11-17); bare 'new RestTemplate()' bean, no @LoadBalanced, no timeouts (19-22)." },
+    { "path": "user-service/src/main/resources/bootstrap.yml", "purpose": "3 lines: spring.application.name=user-service; spring.config.import=optional:configserver:${CONFIG_SERVER:http://localhost:8888/}. NO application.yml in the module - datasource, jpa, consul, server.port, jwt.secret, jwt.token.validity all come from config-service." },
+    { "path": "user-service/Dockerfile", "purpose": "4 lines: FROM openjdk:17 / EXPOSE 8080 / ADD target/user-service-1.0.jar / ENTRYPOINT java -jar. Single-stage, needs a pre-built jar, no JAVA_OPTS/HEALTHCHECK/non-root USER and no CONFIG_SERVER or Consul env; EXPOSE 8080 is fictional (server.port: 0). Full paragraph in the .md." },
+    { "path": "user-service/src/main/java/pro/algotrade/userservice/security/JwtTokenFilter.java", "purpose": "@Component OncePerRequestFilter (21) - auto-registered by Boot into the servlet-container chain, but not into the SecurityFilterChain. utility/QrCodeGenerator.java:17 is the other @Component." }
+  ],
+  "architecture": {
+    "pattern": "Classic 4-tier layered Spring Boot service (controller -> service interface -> service.impl -> Spring Data repository -> @Entity) plus satellite packages controller.dto, mapper(+utility), exception(+config), security, utility, persistence.utility. No domain layer; orchestration actually sits in the controller.",
+    "evidence": [
+      "UserController.java:27 depends on the UserService interface; UserServiceImpl.java:28 implements UserService AND UserDetailsService in one bean",
+      "UserController also bypasses the service layer for mapping and I/O: UserMapper.INSTANCE at :37,40,61,74,84 and restTemplate at :28,34,63,86",
+      "MapStruct is dominant and the only mapper: UserMapper.java:13-25 (@Mapper uses=UserStatusResolver, 2 methods, 4 @Mapping); manual mapping survives only for setPerson() (UserController.java:41,64,87)",
+      "UserMapper.INSTANCE = Mappers.getMapper(...) at UserMapper.java:16 makes it a static singleton, not a Spring bean - not injectable or mockable",
+      "1 Spring Data repository for 3 @Entity classes; 0 @Transactional, 0 @Valid, 0 Pageable in all 34 files",
+      "pom.xml:134-154 pins maven-compiler-plugin source/target 10 while the root pom sets java.version 17 and the Dockerfile runs openjdk:17",
+      "Logging mix: @Slf4j (4 classes) vs @Log4j2 (JwtUtil.java:5,16) on Boot's default Logback"
+    ]
+  },
+  "businessModules": [
+    { "name": "User account CRUD (login, password hash, personId link, status)", "path": "user-service/src/main/java/pro/algotrade/userservice/controller/UserController.java", "purpose": "6 handlers on /users (create, getById, getByUsername, update, delete, login) over UserServiceImpl (85 lines) + UserRepository. Live but partly broken: getByUsername is shadowed, update() is a no-op, login() returns null." },
+    { "name": "Role and permission RBAC model (schema only, inert)", "path": "user-service/src/main/java/pro/algotrade/userservice/persistence/RoleEntity.java", "purpose": "RoleEntity (T_ROLES) + PermissionEntity (T_PERMISSIONS) + Role enum (OWNER/TRADER/VIEWER, persistence/utility/Role.java) + join tables T_USERS_ROLES / T_ROLES_PERMISSIONS. No repository, no seeding, UserRequest.role never mapped, RoleEntity.getAuthority() returns permissions.toString() (36-39) so no hasAuthority can ever match." },
+    { "name": "TOTP secret + QR provisioning (half-implemented)", "path": "user-service/src/main/java/pro/algotrade/userservice/utility/QrCodeGenerator.java", "purpose": "Per-user Base32 secret (UserEntity.java:26) rendered to a 300x300 PNG and stored in T_USERS.qr_code by UserServiceImpl.java:38. Verification exists only commented out (UserController.java:52-59); mfa flag never read; no endpoint returns the QR." },
+    { "name": "Bearer-JWT validation and (unused) issuance", "path": "user-service/src/main/java/pro/algotrade/userservice/security", "purpose": "JwtUtil (jjwt 0.9.1 HS512 getClaims/getUsername/generateToken/validateToken, 59 lines) + JwtTokenFilter (54 lines). generateToken has zero callers; the filter is not in the security chain." },
+    { "name": "Localised error reporting (en + ru)", "path": "user-service/src/main/java/pro/algotrade/userservice/exception", "purpose": "UserServiceGlobalRuntimeException(messageKey, code) + 5 subclasses, GlobalErrorCode (1000-1003), ErrorResponse{code,message}, UserGlobalExceptionHandler @ControllerAdvice; keys resolve against src/main/resources/message/exception{,_rus}.properties. 9 files, 134 lines." },
+    { "name": "User-creation notification (empty shell)", "path": "user-service/src/main/java/pro/algotrade/userservice/service/impl/MailServiceImpl.java", "purpose": "NotificationService's only method is commented (line 4) and MailServiceImpl's whole body - a KafkaTemplate.send(\"mails\", ...) - is commented (11-16); call site commented at UserServiceImpl.java:50. Neither spring-boot-starter-mail nor Kafka is a dependency." }
+  ],
+  "entities": [
+    {
+      "name": "UserEntity (table T_USERS)",
+      "path": "user-service/src/main/java/pro/algotrade/userservice/persistence/UserEntity.java",
+      "keyFields": ["id IDENTITY", "uuid (set UserServiceImpl.java:35)", "username + BCrypt password", "secret = Base32.random() (TOTP secret, line 26, plaintext)", "qrCode byte[] @Column BLOB (28-29)", "personId Long (31)", "status : Status in TINYINT, ordinal-encoded (39-40)", "mfa boolean=false (48, never read/written)"],
+      "relations": [
+        "@ManyToMany(fetch=EAGER) Set<RoleEntity> authorities via @JoinTable T_USERS_ROLES(user_id->T_USERS.id, role_id->T_ROLES.id) - lines 33-37",
+        "personId : Long (31) is a plain column, NOT a JPA association - logical FK to person-service Person, resolved over HTTP at UserController.java:101-115",
+        "inverse of RoleEntity.user (@ManyToMany(mappedBy=\"authorities\"), RoleEntity.java:27-28)",
+        "implements UserDetails (line 15) so the JPA entity doubles as the security principal; @Data on both sides of the bidirectional M:N risks recursive equals/hashCode/toString"
+      ]
+    },
+    {
+      "name": "RoleEntity (table T_ROLES)",
+      "path": "user-service/src/main/java/pro/algotrade/userservice/persistence/RoleEntity.java",
+      "keyFields": ["id IDENTITY", "roleType : Role {OWNER,TRADER,VIEWER} @Enumerated(STRING) column NAME unique not-null (21-23)", "isDefaultRole (never read)"],
+      "relations": ["@ManyToMany(mappedBy=\"authorities\",EAGER) Set<UserEntity> user (27-28)", "@ManyToMany(EAGER) Set<PermissionEntity> permissions via @JoinTable T_ROLES_PERMISSIONS(role_id, permission_id) (30-34)", "implements GrantedAuthority; getAuthority() returns permissions.toString() (36-39)"]
+    },
+    {
+      "name": "PermissionEntity (table T_PERMISSIONS)",
+      "path": "user-service/src/main/java/pro/algotrade/userservice/persistence/PermissionEntity.java",
+      "keyFields": ["id IDENTITY", "name", "description", "value : Long (never compared to anything)"],
+      "relations": ["@ManyToMany(mappedBy=\"permissions\",EAGER) Set<RoleEntity> roles (25-26)"]
+    }
+  ],
+  "endpointGroups": [
+    {
+      "pathPattern": "/users",
+      "methods": ["POST /users", "GET /users/{id}", "GET /users/{username}", "PUT /users/{id}", "DELETE /users/{id}"],
+      "count": 5,
+      "version": "none - no /v1 prefix, no API-version header, no springdoc; base path is @RequestMapping(\"/users\") at UserController.java:21",
+      "auth": "permitAll - SecurityConfig.java:19 anyRequest().permitAll(); no @PreAuthorize, no method security, no resource-server",
+      "sourceFile": "user-service/src/main/java/pro/algotrade/userservice/controller/UserController.java"
+    },
+    {
+      "pathPattern": "/users/login",
+      "methods": ["POST /users/login"],
+      "count": 1,
+      "version": "none",
+      "auth": "permitAll (same rule); handler returns null (UserController.java:117-122)",
+      "sourceFile": "user-service/src/main/java/pro/algotrade/userservice/controller/UserController.java"
+    }
+  ],
+  "integrations": [
+    {
+      "name": "MySQL (schema users_schema, localhost:3307)",
+      "package": "com.mysql:mysql-connector-j (scope runtime, pom.xml:71-75)",
+      "usedIn": ["no Java import - Hibernate/JDBC only", "user-service/src/main/java/pro/algotrade/userservice/persistence/repository/UserRepository.java"],
+      "purpose": "Sole datastore; schema owned and mutated by Hibernate.",
+      "complianceHint": "URL/credentials are NOT in this module: delivered by config-service/src/main/resources/config/user-service.yml (spring.datasource.url/.username/.password ~52-55) - cited by path + property only; project_init.md:228,248 records them as a P0 committed-credential gap. Driver com.mysql.cj.jdbc.Driver is set there (line 55). Platform-wide actuator exposure include:\"*\" means /env here would print those values."
+    },
+    {
+      "name": "HashiCorp Consul (service registration)",
+      "package": "org.springframework.cloud:spring-cloud-starter-consul-discovery (pom.xml:83-86)",
+      "usedIn": ["no Java import - startup auto-registration; localhost:8500 expected"],
+      "purpose": "Registers user-service for gateway-service; server.port: 0 means a random port.",
+      "complianceHint": "Declares discovery only, NOT spring-cloud-starter-consul-config. Despite registering, outbound calls use a hard-coded localhost URL, so discovery is bypassed by its own traffic."
+    },
+    {
+      "name": "Spring Cloud Config Server",
+      "package": "spring-cloud-starter-config + spring-cloud-starter-bootstrap (pom.xml:43-51)",
+      "usedIn": ["user-service/src/main/resources/bootstrap.yml:3"],
+      "purpose": "Source of every runtime property, including the two jwt.* properties JwtUtil requires.",
+      "complianceHint": "config.import is 'optional:', so an unreachable config-service does not fail fast; the context then dies on spring.datasource.url or on the unresolvable jwt.secret / jwt.token.validity placeholders."
+    },
+    {
+      "name": "JWT - JJWT 0.9.1 (legacy single-artifact API)",
+      "package": "io.jsonwebtoken:jjwt:0.9.1 (pom.xml:37-41)",
+      "usedIn": ["security/JwtUtil.java:3,25-27,34-41,43-57", "security/JwtTokenFilter.java:40,45"],
+      "purpose": "HS512 HMAC parse/verify of inbound bearer tokens + an issuing helper with zero callers.",
+      "complianceHint": "EOL artifact; no jjwt-api/impl/jackson trio. Key is a raw String from property 'jwt.secret' (JwtUtil.java:18) with 'jwt.token.validity' (22) - names only, values not read. Symmetric HS512 means any holder of the shared secret can mint tokens this service accepts; no iss/aud/kid check."
+    },
+    {
+      "name": "TOTP - Aerogear OTP",
+      "package": "org.jboss.aerogear:aerogear-otp-java:1.0.0 (pom.xml:94-98)",
+      "usedIn": ["persistence/UserEntity.java:4,26 (Base32.random() only)", "controller/UserController.java:52-59 (Totp verify, COMMENTED OUT)"],
+      "purpose": "Only the Base32 secret generator is live; no OTP is ever generated or verified.",
+      "complianceHint": "The shared secret is stored plaintext in T_USERS.secret with no @Convert/encryption and is reachable through Lombok toString(). Never log or export that column; the second factor is not actually enforced, so it must not be described as MFA."
+    },
+    {
+      "name": "QR rendering - ZXing",
+      "package": "com.google.zxing:core + com.google.zxing:javase 3.5.1 (<zxing.version>, pom.xml:12,100-110)",
+      "usedIn": ["utility/QrCodeGenerator.java:3-8,21-45"],
+      "purpose": "QRCodeWriter -> BitMatrix -> MatrixToImageWriter PNG (custom MatrixToImageConfig colours); result stored as a BLOB, not base64 (base64 line commented at :36).",
+      "complianceHint": "QR_CODE_IMAGE_PATH (QrCodeGenerator.java:19) is a hard-coded absolute Windows path into an older 'AlgoTradePlatform' checkout outside this repo. asImage() has no callers, but any future call writes outside the workspace."
+    },
+    {
+      "name": "person-service via the edge gateway",
+      "package": "org.springframework.web.client.RestTemplate (bean at UserApplicationConfiguration.java:19-22)",
+      "usedIn": ["controller/UserController.java:25,26,28,34,63,86,101-115"],
+      "purpose": "GET http://localhost:3535/persons/{personId} -> PersonDto, on POST /users, GET /users/{id}, PUT /users/{id}.",
+      "complianceHint": "Gateway URL is a public static constant, not a property, not lb://, not @LoadBalanced; no timeouts, retry or circuit breaker. A person-service outage surfaces as HTTP 400 from this service with an INTERNAL_ERROR(1000) code."
+    },
+    {
+      "name": "Spring Boot Admin client",
+      "package": "de.codecentric:spring-boot-admin-starter-client ${spring-boot-admin.version} (pom.xml:53-57)",
+      "usedIn": ["no Java import - autoconfiguration only"],
+      "purpose": "Reports the service to admin-service.",
+      "complianceHint": "Actuator exposure is decided in config-service, not here."
+    },
+    {
+      "name": "SMTP / e-mail - not found",
+      "package": "not found",
+      "usedIn": [],
+      "purpose": "No spring-boot-starter-mail and no Kafka dependency; the only mail artefact is the empty MailServiceImpl shell.",
+      "complianceHint": "E-mail belongs to notification-service; do not attribute SMTP to this component."
+    },
+    {
+      "name": "OpenAPI / Swagger / Postman - not found",
+      "package": "not found",
+      "usedIn": [],
+      "purpose": "No springdoc-openapi or swagger dependency, no openapi.yaml/swagger.json, no Postman/Bruno collection, no README or doc/ in the module.",
+      "complianceHint": "The only contract is UserController.java plus the gateway route table in config-service (out of scope)."
+    }
+  ],
+  "dependencies": [
+    { "name": "org.springframework.boot:spring-boot-starter-web", "version": "2.7.5 (managed)", "category": "runtime - IMPORTED (@RestController, ResponseEntity, RestTemplate, HttpClientErrorException)" },
+    { "name": "org.springframework.boot:spring-boot-starter-data-jpa", "version": "2.7.5 (managed)", "category": "runtime - IMPORTED (javax.persistence.*, JpaRepository)" },
+    { "name": "org.springframework.boot:spring-boot-starter-security", "version": "2.7.5 (managed)", "category": "runtime - IMPORTED (SecurityFilterChain, BCryptPasswordEncoder, UserDetails, GrantedAuthority, OncePerRequestFilter, AuthenticationException)" },
+    { "name": "io.jsonwebtoken:jjwt", "version": "0.9.1 (pom.xml:40)", "category": "runtime - IMPORTED in security/JwtUtil.java only" },
+    { "name": "org.springframework.cloud:spring-cloud-starter-bootstrap", "version": "BOM 2021.0.5 (pom.xml:43-46)", "category": "runtime - the enabler that makes bootstrap.yml load" },
+    { "name": "org.springframework.cloud:spring-cloud-starter-config", "version": "BOM 2021.0.5 (pom.xml:48-51)", "category": "runtime - used only via bootstrap.yml, no Java import" },
+    { "name": "org.springframework.cloud:spring-cloud-starter-consul-discovery", "version": "BOM 2021.0.5 (pom.xml:83-86)", "category": "runtime - no Java import" },
+    { "name": "de.codecentric:spring-boot-admin-starter-client", "version": "${spring-boot-admin.version} = 2.7.7 (pom.xml:53-57)", "category": "observability - no Java import" },
+    { "name": "org.mapstruct:mapstruct (+ mapstruct-processor)", "version": "${org.mapstruct.version} = 1.5.3.Final; processor path pom.xml:147-151", "category": "compile - IMPORTED (@Mapper, @Mapping, Mappers, @Qualifier)" },
+    { "name": "org.projectlombok:lombok", "version": "${org.projectlombok.version} = 1.18.24, provided; processor path pom.xml:142-146", "category": "compile-only - IMPORTED (@Data x6, @RequiredArgsConstructor x6, @Slf4j, @Getter, @Builder, @Log4j2)" },
+    { "name": "com.mysql:mysql-connector-j", "version": "managed, scope runtime (pom.xml:71-75)", "category": "jdbc-driver - never imported by design" },
+    { "name": "org.apache.commons:commons-lang3", "version": "managed, scope PROVIDED (pom.xml:88-92)", "category": "UNUSED - 0 imports across all 34 files; deletable" },
+    { "name": "org.jboss.aerogear:aerogear-otp-java", "version": "1.0.0 (pom.xml:94-98)", "category": "runtime - 1 import only (Base32), UserEntity.java:4,26" },
+    { "name": "com.google.zxing:core + com.google.zxing:javase", "version": "3.5.1 via <zxing.version> (pom.xml:12,100-110)", "category": "runtime - IMPORTED only in utility/QrCodeGenerator.java" },
+    { "name": "org.springframework.boot:spring-boot-starter-test", "version": "2.7.5, scope test (pom.xml:77-81)", "category": "test - declared; src/test/ does not exist" },
+    { "name": "ABSENT: spring-boot-starter-validation", "version": "not declared", "category": "absent - bean validation impossible; no @Valid anywhere" },
+    { "name": "ABSENT: spring-boot-starter-mail / spring-kafka", "version": "not declared", "category": "absent - no SMTP, no messaging despite the MailServiceImpl shell" },
+    { "name": "ABSENT: spring-cloud-starter-openfeign", "version": "not declared here or repo-wide", "category": "absent - RestTemplate is the only client type present" },
+    { "name": "ABSENT: flyway / liquibase", "version": "not declared", "category": "absent - Hibernate ddl-auto owns the schema" }
+  ],
+  "patterns": [
+    { "name": "MapStruct mapper consumed as a static singleton instead of a bean", "evidence": ["UserMapper.java:16 UserMapper.INSTANCE = Mappers.getMapper(UserMapper.class)", "UserController.java:37,40,61,74,84 static call sites", "manual residual mapping only where the entity is blind: setPerson() at :41,64,87"] },
+    { "name": "Custom MapStruct @Qualifier annotations for String<->enum conversion", "evidence": ["mapper/utility/EntityStatus.java:9-12 + DtoStatus.java:9-12 (@Qualifier, RetentionPolicy.CLASS)", "mapper/utility/UserStatusResolver.java:7 (@EntityStatus) and :23 (@DtoStatus)", "UserMapper.java:18,23 qualifiedBy=EntityStatus.class / DtoStatus.class", "field rename login<->username at UserMapper.java:19 and :24"] },
+    { "name": "Exception carries an i18n message KEY plus a numeric business code", "evidence": ["UserServiceGlobalRuntimeException.java:7-12 (String message, Long code)", "UserEntityNotFoundRuntimeException.java:8 'exception.user.not.found'/1001; UserAlreadyRegisteredException.java:8 '.../1002'; PersonEntityNotFoundRuntimeException.java:8 'exception.person.not.found'/1001", "GlobalErrorCode.java:7-10 (1000 INTERNAL, 1001 NOT_FOUND, 1002 ALREADY_REGISTERED, 1003 QR)"] },
+    { "name": "One error shape, always HTTP 400, plus a catch-all that breaks the shape", "evidence": ["ErrorResponse.java:8-10 @Data @Builder {Long code; String message}", "UserGlobalExceptionHandler.java:25-31 badRequest().body(ErrorResponse)", ":34-39 @ExceptionHandler({Exception.class}) -> badRequest().body(raw String) blaming 'Person Service'"] },
+    { "name": "Manual i18n bundles, partially empty", "evidence": ["UserApplicationConfiguration.java:12-16 setBasenames(message/exception, message/notification) + useCodeAsDefaultMessage(true)", "exception.properties 4 keys vs exception_rus.properties 3 (error.qr_code.generation missing) -> Russian users get the literal key", "notification.properties and notification_rus.properties are empty"] },
+    { "name": "No validation layer at all", "evidence": ["0 @Valid / constraint annotations; spring-boot-starter-validation not declared", "only guard = duplicate-username lookup at UserServiceImpl.java:45-48, executed AFTER the QR render and BCrypt hash at :38-43"] },
+    { "name": "No pagination and no list endpoint", "evidence": ["0 Pageable / Page< / Sort / @Query", "UserRepository.java:10-11 exposes only findByUsername"] },
+    { "name": "No explicit transaction boundaries", "evidence": ["0 @Transactional in 34 files", "create() = findByUsername + save in two separate transactions (UserServiceImpl.java:45-52)", "update() = getById + save(unchanged) (:62-68)"] },
+    { "name": "BCrypt, encode-only", "evidence": ["PasswordConfig.java:11-14 BCryptPasswordEncoder (default strength 10)", "UserServiceImpl.java:43 encode() on create only; no matches(), no password-change path, update() never re-hashes"] },
+    { "name": "Remote call wrapped in a private controller helper, not a client abstraction", "evidence": ["UserController.java:101-115 getPersonDto: catch HttpClientErrorException -> INTERNAL_ERROR, then null -> PersonEntityNotFoundRuntimeException (nearly unreachable because a 404 already threw)", "no Feign client, no RestTemplate bean customisation, no timeouts"] },
+    { "name": "JPA entity doubles as the Spring Security principal", "evidence": ["UserEntity.java:15 implements UserDetails with @Data", "RoleEntity.java:15 implements GrantedAuthority", "UserServiceImpl.java:28,81-84 UserDetailsService over the same repository"] },
+    { "name": "Enum persisted by ordinal despite carrying a stable code", "evidence": ["UserEntity.java:39-40 @Column(columnDefinition=\"TINYINT\") Status status, no @Enumerated -> ORDINAL", "Status.java:10,18 code field never used", "contrast RoleEntity.java:21 which does use @Enumerated(STRING)"] },
+    { "name": "Two conflicting 'active' defaults", "evidence": ["UserStatusResolver.java:19-21 defaults any unknown string to USER_ACCOUNT_ENABLE", "UserEntity.java:40 and UserRequest.java:16 default to USER_ACCOUNT_ACTIVE"] }
+  ],
+  "persistence": {
+    "starter": "spring-boot-starter-data-jpa (pom.xml:22-25); Hibernate 5.6 via Boot 2.7.5, HikariCP defaults",
+    "driver": "com.mysql.cj.jdbc.Driver via property spring.datasource.driver-class-name in config-service/src/main/resources/config/user-service.yml:55 (path + property name only); module declares com.mysql:mysql-connector-j scope runtime (pom.xml:71-75)",
+    "dialect": "never set in this component (no spring.jpa.database-platform, no hibernate.dialect) - auto-detected from JDBC metadata",
+    "ddlAuto": "spring.jpa.hibernate.ddl-auto: update, delivered by config-service (.opencode/rules/development.md:44). The 3 @Entity classes are the de-facto schema; NO Flyway/Liquibase/changelog/.sql in this module.",
+    "schema": "users_schema on localhost:3307 (non-default port, nothing in-repo starts it); server.port: 0 -> random, Consul-assigned (.opencode/rules/development.md:45)",
+    "tables": ["T_USERS", "T_ROLES", "T_PERMISSIONS", "T_USERS_ROLES (join)", "T_ROLES_PERMISSIONS (join)"],
+    "repositories": ["pro.algotrade.userservice.persistence.repository.UserRepository extends JpaRepository<UserEntity,Long>, derived query Optional<UserEntity> findByUsername(String) - UserRepository.java:10-11. THE ONLY Spring Data repository in the component."],
+    "entitiesWithoutRepository": ["RoleEntity", "PermissionEntity"]
+  },
+  "crossComponentDependencies": [
+    { "targetPath": "pom.xml (root aggregator pro.algotrade:algo-trade-platform:1.0)", "via": "Maven <parent> user-service/pom.xml:5-9; supplies Boot 2.7.5, java.version 17, ${spring-cloud.version}, ${spring-boot-admin.version}, ${org.mapstruct.version}, ${org.projectlombok.version}. Not followed further." },
+    { "targetPath": "config-service/src/main/resources/config/user-service.yml", "via": "spring-cloud-starter-config + bootstrap.yml:3. Delivers spring.datasource.* (users_schema :3307), spring.jpa.hibernate.ddl-auto, server.port: 0, spring.cloud.consul.*, actuator exposure, and the values for jwt.secret / jwt.token.validity (JwtUtil.java:18,22). Not opened - property names only." },
+    { "targetPath": "gateway-service (service-id gateway-service, http://localhost:3535)", "via": "RestTemplate GET /persons/{personId} at UserController.java:25,104 - the edge router forwards on to person-service" },
+    { "targetPath": "person-service (service-id person-service, owns persons_schema)", "via": "logical FK UserEntity.personId (UserEntity.java:31) + hand-maintained contract mirror controller/dto/PersonDto.java (id, uuid, firstName, lastName, email, birthday). No shared artefact, no Feign contract." },
+    { "targetPath": "auth-service (service-id auth-service, :9000)", "via": "NO call in either direction. Only coupling is convention: HS512 HMAC with a symmetric secret (JwtUtil.java:40) - whether it is the same secret is not determinable in scope." },
+    { "targetPath": "account-service / notification-service", "via": "NONE - no URL, no client, no FK, no message, no reference anywhere in the module (despite account-service owning an 'account' concept the user has no FK to)." },
+    { "targetPath": "admin-service (Spring Boot Admin UI)", "via": "spring-boot-admin-starter-client (pom.xml:53-57), runtime autoconfiguration only" },
+    { "targetPath": "external: HashiCorp Consul localhost:8500", "via": "spring-cloud-starter-consul-discovery registration" },
+    { "targetPath": "external: MySQL localhost:3307 schema users_schema", "via": "spring-boot-starter-data-jpa + mysql-connector-j" }
+  ],
+  "recommendations": [
+    "Restore real authorisation: SecurityConfig.java:19 permits everything, so the module is fully anonymous. Define rules and register JwtTokenFilter with addFilterBefore() - today the @Component filter runs only as a servlet filter, its Authentication is consulted by nothing, and a bad token becomes a RuntimeException (JwtTokenFilter.java:42) rather than a 401.",
+    "Fix the /users/{id} vs /users/{username} collision (UserController.java:47 vs :70): the numeric handler shadows the username handler and a non-numeric segment fails Long conversion. Rename to /users/by-username/{username} or drop the route.",
+    "Delete or implement POST /users/login (UserController.java:117-122) - it hashes the controller's own toString() and returns null.",
+    "Implement UserServiceImpl.update() (62-68), which ignores its userRequest argument; PUT /users/{id} currently cannot change anything.",
+    "Wire the RBAC model or delete it: map UserRequest.role (UserRequest.java:18) to RoleEntity, add Role/Permission repositories plus a seed, and return a real authority string from RoleEntity.getAuthority() (36-39).",
+    "Complete or remove TOTP: nothing verifies a code (commented at UserController.java:52-59), no endpoint exposes the QR (UserResponse has no qrCode field), UserEntity.mfa (48) is never read. Do not describe the service as MFA-capable until then.",
+    "Stop storing the TOTP secret in plaintext in T_USERS.secret (UserEntity.java:26) - encrypting @Convert or a vault reference - and keep it out of any Lombok toString() that reaches a log.",
+    "Pin the enum contract: add @Enumerated(STRING) or a Converter keyed on Status.code (Status.java:10), then replace ddl-auto: update with Flyway.",
+    "Externalise the gateway URL (UserController.java:25) as a property, switch to lb://person-service with a @LoadBalanced RestTemplate, and set connect/read timeouts.",
+    "Add @Transactional(readOnly=true) to reads and real boundaries on create/update; move the duplicate-username check (UserServiceImpl.java:45-48) before the QR + BCrypt work.",
+    "Narrow UserGlobalExceptionHandler: replace the Exception catch-all (:34-39) with specific handlers, return 404 for the two not-found exceptions, keep ErrorResponse on every path, fix the 'Person Service' string.",
+    "Align the compiler: pom.xml:139-140 pins source/target 10 against the parent's Java 17.",
+    "Delete the unused commons-lang3 dependency (pom.xml:88-92); fix or remove QrCodeGenerator.java:19's absolute path to a stale checkout; drop the fictional Dockerfile EXPOSE 8080 or set server.port.",
+    "Add the first tests - src/test does not exist though the Boot test starter is declared. Highest value: UserMapper + UserStatusResolver (its default silently maps any unknown status to USER_ACCOUNT_ENABLE, :19-21), the exception handler, the duplicate-username path."
+  ],
+  "gaps": [
+    "Driver class, dialect, ddl-auto value, datasource URL and server.port are outside this component (user-service ships only bootstrap.yml). ddl-auto: update / users_schema / :3307 are carried from .opencode/rules/development.md:44-45 and .opencode/rules/project/metadata.json:17 - not read from a file in scope.",
+    "Whether jwt.secret here is the same value used by gateway-service and auth-service is not determinable in scope; only the property name at JwtUtil.java:18 is visible.",
+    "Runtime behaviour of the duplicate /users/{x} mappings (which handler Spring selects, or whether startup fails) is a static inference - the application was not started and nothing was built; the bash budget is read-only.",
+    "Physical column names/types (secret, qr_code, person_id, TINYINT status) follow Hibernate implicit naming but are unverified - no schema, migration or test exists in the module.",
+    "Whether @Value on the final fields of JwtUtil (18-22) binds through Lombok's generated constructor was not verified by a build; no lombok.config exists in the module to copy @Value to constructor parameters."
+  ]
+}
